@@ -14,6 +14,7 @@ import { Button } from "./ui/button";
 import { Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useState } from "react";
+import SignIn from "./sign-In";
 
 export default function Header() {
   const { setTheme } = useTheme();
@@ -79,7 +80,7 @@ export default function Header() {
               </DropdownMenu>
             </div>
           </div>
-
+          <SignIn />
           <div className="flex md:hidden">
             <Button
               variant="outline"
