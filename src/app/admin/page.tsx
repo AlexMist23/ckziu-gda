@@ -11,7 +11,7 @@ export default async function AdminPage() {
   return (
     <div>
       <h1>Admin Dashboard</h1>
-      <p>Welcome, {session.user.name}!</p>
+      <p>Welcome, {session.user!.name}!</p>
     </div>
   );
 }
