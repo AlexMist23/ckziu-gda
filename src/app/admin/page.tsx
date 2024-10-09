@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 export default async function AdminPage() {
   const session = await auth();
 
-  if (!session || session.user.role !== "admin") {
+  if (!session) {
     redirect("/");
   }
 
@@ -12,7 +12,6 @@ export default async function AdminPage() {
     <div>
       <h1>Admin Dashboard</h1>
       <p>Welcome, {session.user.name}!</p>
-      {/* Add your admin-specific content here */}
     </div>
   );
 }
