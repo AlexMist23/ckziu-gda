@@ -1,28 +1,18 @@
 import NextAuth from "next-auth";
-import { PrismaAdapter } from "@auth/prisma-adapter";
-import { PrismaClient } from "@prisma/client";
+import { UnstorageAdapter } from "@auth/unstorage-adapter";
 import GitHub from "next-auth/providers/github";
-import { Adapter } from "next-auth/adapters";
+import { createStorage } from "unstorage";
+import vercelKVDriver from "unstorage/drivers/vercel-kv";
 
-const prisma = new PrismaClient();
+const storage = createStorage({
+  driver: vercelKVDriver({
+    url: process.env.KV_REST_API_URL,
+    token: process.env.KV_REST_API_TOKEN,
+    ttl: 60, // in seconds
+  }),
+});
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
-  adapter: PrismaAdapter(prisma) as Adapter,
+  adapter: UnstorageAdapter(storage),
   providers: [GitHub],
-  callbacks: {
-    async session({ session, user }) {
-      if (session.user) {
-        session.user.id = user.id;
-        session.user.role = user.role;
-      }
-      return session;
-    },
-    async jwt({ token, user }) {
-      if (user) {
-        token.id = user.id;
-        token.role = user.role;
-      }
-      return token;
-    },
-  },
 });
