@@ -1,35 +1,20 @@
-import NextAuth, { type DefaultSession } from "next-auth";
+import { DefaultSession } from "next-auth";
 
 declare module "next-auth" {
-  /**
-   * Returned by `auth`, `useSession`, `getSession` and received as a prop on the `SessionProvider` React Context
-   */
-  interface Session {
+  interface Session extends DefaultSession {
     user: {
-      /** The user's postal address. */
-      role: "user" | "admin";
-      /**
-       * By default, TypeScript merges new interface properties and overwrites existing ones.
-       * In this case, the default session user properties will be overwritten,
-       * with the new ones defined above. To keep the default session user properties,
-       * you need to add them back into the newly declared interface.
-       */
+      id: string;
+      role: string;
     } & DefaultSession["user"];
+  }
+
+  interface User {
+    role: string;
   }
 }
 
-export const { auth, handlers } = NextAuth({
-  callbacks: {
-    session({ session, user }) {
-      // `session.user.address` is now a valid property, and will be type-checked
-      // in places like `useSession().data.user` or `auth().user`
-      return {
-        ...session,
-        user: {
-          ...session.user,
-          address: user.address,
-        },
-      };
-    },
-  },
-});
+declare module "@auth/core/adapters" {
+  interface AdapterUser {
+    role: string;
+  }
+}
