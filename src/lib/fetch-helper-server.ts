@@ -4,7 +4,7 @@ export async function fetchHelperServer(
   path: string,
   options: RequestInit = {}
 ) {
-  const headersList = headers();
+  const headersList = await headers();
   const domain = headersList.get("host") || "";
   const protocol = process.env.NODE_ENV === "production" ? "https" : "http";
 

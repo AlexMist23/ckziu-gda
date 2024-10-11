@@ -1,10 +1,8 @@
 import Link from "next/link";
-import { auth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
@@ -13,8 +11,6 @@ import { Badge } from "@/components/ui/badge";
 import { ArrowRight, Database, Lock, Palette, Code } from "lucide-react";
 
 export default async function Home() {
-  const session = await auth();
-
   return (
     <main className="flex flex-col items-center justify-center min-h-screen p-24">
       <h1 className="mb-8 text-4xl font-bold">Welcome to Your Next.js App</h1>
@@ -49,40 +45,6 @@ export default async function Home() {
           href="https://authjs.dev/"
         />
       </div>
-
-      {session ? (
-        <Card>
-          <CardHeader>
-            <CardTitle>Welcome back, {session.user?.name}!</CardTitle>
-            <CardDescription>
-              You&apos;re signed in and ready to go.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p>Start building your application&apos;s features.</p>
-          </CardContent>
-          <CardFooter>
-            <Button asChild>
-              <Link href="/dashboard">Go to Dashboard</Link>
-            </Button>
-          </CardFooter>
-        </Card>
-      ) : (
-        <Card>
-          <CardHeader>
-            <CardTitle>Get Started</CardTitle>
-            <CardDescription>Sign in to access all features.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p>Create an account or sign in to get started.</p>
-          </CardContent>
-          <CardFooter>
-            <Button asChild>
-              <Link href="/api/auth/signin">Sign In</Link>
-            </Button>
-          </CardFooter>
-        </Card>
-      )}
 
       <div className="mt-12">
         <Badge variant="outline" className="text-sm">

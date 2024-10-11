@@ -3,8 +3,9 @@ import { sql } from "@vercel/postgres";
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  props: { params: Promise<{ id: string }> }
 ) {
+  const params = await props.params;
   try {
     const { rows } = await sql`SELECT * FROM users WHERE id = ${params.id}`;
     if (rows.length === 0) {
@@ -22,8 +23,9 @@ export async function GET(
 
 export async function PUT(
   request: Request,
-  { params }: { params: { id: string } }
+  props: { params: Promise<{ id: string }> }
 ) {
+  const params = await props.params;
   try {
     const { name, email, role } = await request.json();
 
@@ -49,8 +51,9 @@ export async function PUT(
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  props: { params: Promise<{ id: string }> }
 ) {
+  const params = await props.params;
   try {
     const { rows } = await sql`
       DELETE FROM users

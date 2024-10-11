@@ -43,7 +43,7 @@ export default function AdminDashboard() {
         {adminSections.map((section) => (
           <Card
             key={section.title}
-            className="hover:shadow-lg transition-shadow duration-300"
+            className="hover:shadow-lg transition-shadow duration-300 hover:shadow-foreground/5"
           >
             <CardHeader className="pb-4">
               <CardTitle className="flex items-center justify-between">

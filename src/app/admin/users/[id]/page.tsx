@@ -11,7 +11,8 @@ import {
 import { User } from "@/types/db";
 import Link from "next/link";
 
-export default async function UserPage({ params }: { params: { id: string } }) {
+export default async function UserPage(props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   if (!params.id) {
     notFound();
   }

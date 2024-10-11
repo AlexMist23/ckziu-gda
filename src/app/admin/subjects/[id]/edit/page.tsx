@@ -2,11 +2,12 @@ import { fetchHelperServer } from "@/lib/fetch-helper-server";
 import { SubjectEditForm } from "@/components/admin/subject-edit-form";
 import { Subject } from "@/types/db";
 
-export default async function EditSubjectPage({
-  params,
-}: {
-  params: { id: string };
-}) {
+export default async function EditSubjectPage(
+  props: {
+    params: Promise<{ id: string }>;
+  }
+) {
+  const params = await props.params;
   let subject: Subject | null = null;
 
   try {
