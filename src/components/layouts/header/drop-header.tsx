@@ -12,7 +12,7 @@ export default function DropHeader({ className }: { className?: string }) {
     <nav
       className={cn(
         className,
-        "fixed mt-52 flex flex-col bg-background/80 backdrop-blur border-b shadow-sm w-full -ml-4 gap-1"
+        "fixed mt-52 flex flex-col bg-background backdrop-blur border-b shadow-sm w-full -ml-4 gap-1"
       )}
     >
       {navLinks.map((link) => (
