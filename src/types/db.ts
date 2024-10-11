@@ -12,8 +12,7 @@ export interface Teacher {
   name: string;
   email: string;
   subject_id: number | null;
-  created_at: Date;
-  updated_at: Date;
+  subject_name?: string;
 }
 
 export interface Book {
