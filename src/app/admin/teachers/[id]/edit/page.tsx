@@ -2,10 +2,6 @@ import { fetchHelperServer } from "@/lib/fetch-helper-server";
 import { TeacherEditForm } from "@/components/admin/teacher-edit-form";
 import { Teacher } from "@/types/db";
 
-interface TeacherWithSubjectName extends Teacher {
-  subject_name: string | null;
-}
-
 export default async function EditTeacherPage({
   params,
 }: {
@@ -13,7 +9,7 @@ export default async function EditTeacherPage({
 }) {
   const teacher = (await fetchHelperServer(
     `/api/admin/teachers/${params.id}`
-  )) as TeacherWithSubjectName;
+  )) as Teacher;
 
   return (
     <div className="container mx-auto py-10">

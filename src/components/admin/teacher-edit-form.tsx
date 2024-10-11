@@ -16,7 +16,7 @@ import { putHelperClient, getHelperClient } from "@/lib/fetch-helper-client";
 import { Teacher, Subject } from "@/types/db";
 
 interface TeacherEditFormProps {
-  teacher: Teacher & { subject_name: string | null };
+  teacher: Teacher;
 }
 
 export function TeacherEditForm({ teacher }: TeacherEditFormProps) {
