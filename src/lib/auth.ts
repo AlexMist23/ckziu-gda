@@ -24,6 +24,7 @@ export const authConfig: NextAuthConfig = {
     error: "/auth/error",
     signOut: "/auth/signout",
   },
+  trustHost: true,
 };
 
 export const { handlers, auth, signIn, signOut } = NextAuth(authConfig);
