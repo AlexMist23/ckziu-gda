@@ -54,10 +54,12 @@ export default async function Home() {
         <Card>
           <CardHeader>
             <CardTitle>Welcome back, {session.user?.name}!</CardTitle>
-            <CardDescription>You're signed in and ready to go.</CardDescription>
+            <CardDescription>
+              You&apos;re signed in and ready to go.
+            </CardDescription>
           </CardHeader>
           <CardContent>
-            <p>Start building your application's features.</p>
+            <p>Start building your application&apos;s features.</p>
           </CardContent>
           <CardFooter>
             <Button asChild>
