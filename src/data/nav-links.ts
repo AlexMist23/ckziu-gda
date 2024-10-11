@@ -1,5 +1,21 @@
 export const navLinks = [
-  { href: "/projects", label: "Projects" },
-  { href: "/contact", label: "Contact" },
-  { href: "/resume", label: "Resume" },
+  {
+    label: "Home",
+    href: "/",
+  },
+  {
+    label: "Dashboard",
+    href: "/dashboard",
+  },
+  {
+    label: "Profile",
+    href: "/profile",
+  },
+  {
+    label: "Contact",
+    href: "/contact",
+  },
+  // Add any other navigation links
 ];
+
+// ... rest of the file remains the same
