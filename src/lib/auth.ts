@@ -19,6 +19,11 @@ export const authConfig: NextAuthConfig = {
       return session;
     },
   },
+  pages: {
+    signIn: "/auth/signin",
+    error: "/auth/error",
+    signOut: "/auth/signout",
+  },
 };
 
 export const { handlers, auth, signIn, signOut } = NextAuth(authConfig);
