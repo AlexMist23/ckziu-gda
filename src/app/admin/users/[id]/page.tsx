@@ -1,72 +1,70 @@
-import { NextResponse } from "next/server";
-import { sql } from "@vercel/postgres";
+import { notFound } from "next/navigation";
+import { fetchHelperServer } from "@/lib/fetch-helper-server";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+  CardFooter,
+} from "@/components/ui/card";
+import { User } from "@/types/db";
+import Link from "next/link";
 
-export async function GET(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+export default async function UserPage({ params }: { params: { id: string } }) {
+  if (!params.id) {
+    notFound();
+  }
+
+  let user: User | null = null;
   try {
-    const { rows } = await sql`SELECT * FROM users WHERE id = ${params.id}`;
-    if (rows.length === 0) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
-    }
-    return NextResponse.json(rows[0]);
+    user = await fetchHelperServer(`/api/admin/users/${params.id}`);
   } catch (error) {
     console.error("Failed to fetch user:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch user" },
-      { status: 500 }
-    );
+    notFound();
   }
-}
 
-export async function PUT(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
-  try {
-    const { name, email, role } = await request.json();
-
-    const { rows } = await sql`
-      UPDATE users
-      SET name = ${name}, email = ${email}, role = ${role}
-      WHERE id = ${params.id}
-      RETURNING *
-    `;
-
-    if (rows.length === 0) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
-    }
-    return NextResponse.json(rows[0]);
-  } catch (error) {
-    console.error("Failed to update user:", error);
-    return NextResponse.json(
-      { error: "Failed to update user" },
-      { status: 500 }
-    );
+  if (!user) {
+    notFound();
   }
-}
 
-export async function DELETE(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
-  try {
-    const { rows } = await sql`
-      DELETE FROM users
-      WHERE id = ${params.id}
-      RETURNING *
-    `;
-
-    if (rows.length === 0) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
-    }
-    return NextResponse.json({ message: "User deleted successfully" });
-  } catch (error) {
-    console.error("Failed to delete user:", error);
-    return NextResponse.json(
-      { error: "Failed to delete user" },
-      { status: 500 }
-    );
-  }
+  return (
+    <div className="container mx-auto py-10">
+      <Card>
+        <CardHeader>
+          <CardTitle>User Details</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div>
+              <dt className="text-sm font-medium text-muted-foreground">
+                Name
+              </dt>
+              <dd className="text-base">{user.name}</dd>
+            </div>
+            <div>
+              <dt className="text-sm font-medium text-muted-foreground">
+                Email
+              </dt>
+              <dd className="text-base">{user.email}</dd>
+            </div>
+            <div>
+              <dt className="text-sm font-medium text-muted-foreground">
+                Role
+              </dt>
+              <dd className="text-base">{user.role}</dd>
+            </div>
+          </dl>
+        </CardContent>
+        <CardFooter className="flex justify-end space-x-2">
+          <Button variant="outline" asChild>
+            <Link href={`/admin/users/${params.id}/edit`}>Edit</Link>
+          </Button>
+          <Button variant="destructive" asChild>
+            <Link href={`/admin/users/${params.id}/delete`}>Delete</Link>
+          </Button>
+        </CardFooter>
+      </Card>
+    </div>
+  );
 }
