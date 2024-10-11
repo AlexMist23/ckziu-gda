@@ -1,5 +1,5 @@
 import { GitHubLogoIcon, LinkedInLogoIcon } from "@radix-ui/react-icons";
-import AMLogo from "./icons/am-logo";
+import AMLogo from "@/components/icons/am-logo";
 
 export default function Footer() {
   return (
