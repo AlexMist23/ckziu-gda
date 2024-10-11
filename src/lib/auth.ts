@@ -2,7 +2,6 @@ import NextAuth, { NextAuthConfig } from "next-auth";
 import PostgresAdapter from "@auth/pg-adapter";
 import GitHub from "next-auth/providers/github";
 import { Pool } from "@neondatabase/serverless";
-import pg from "pg";
 export const authConfig: NextAuthConfig = {
   adapter: PostgresAdapter(
     new Pool({
