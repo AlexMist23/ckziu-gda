@@ -1,35 +1,64 @@
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
 import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbList,
-  BreadcrumbPage,
-} from "@/components/ui/breadcrumb";
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Users, BookOpen, Calendar, GraduationCap } from "lucide-react";
 
-export default function AdminPage() {
+const adminSections = [
+  {
+    title: "Users",
+    description: "Manage user accounts",
+    icon: Users,
+    href: "/admin/users",
+  },
+  {
+    title: "Teachers",
+    description: "Manage teacher profiles",
+    icon: GraduationCap,
+    href: "/admin/teachers",
+  },
+  {
+    title: "Subjects",
+    description: "Manage subject listings",
+    icon: BookOpen,
+    href: "/admin/subjects",
+  },
+  {
+    title: "Schedules",
+    description: "Manage class schedules",
+    icon: Calendar,
+    href: "/admin/schedules",
+  },
+];
+
+export default function AdminDashboard() {
   return (
     <div className="container mx-auto py-10">
-      <Breadcrumb>
-        <BreadcrumbList>
-          <BreadcrumbItem>
-            <BreadcrumbPage>Admin</BreadcrumbPage>
-          </BreadcrumbItem>
-        </BreadcrumbList>
-      </Breadcrumb>
-      <h1 className="text-2xl font-bold mb-5">Admin Dashboard</h1>
-      <div className="space-y-4">
-        <Link href="/admin/users" passHref>
-          <Button variant="outline" className="w-full">
-            Manage Users
-          </Button>
-        </Link>
-        <Link href="/admin/teachers" passHref>
-          <Button variant="outline" className="w-full">
-            Manage Teachers
-          </Button>
-        </Link>
-        {/* Add more admin links here */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {adminSections.map((section) => (
+          <Card
+            key={section.title}
+            className="hover:shadow-lg transition-shadow duration-300"
+          >
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center justify-between">
+                {section.title}
+                <section.icon className="h-6 w-6 text-muted-foreground" />
+              </CardTitle>
+              <CardDescription>{section.description}</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button asChild className="w-full">
+                <Link href={section.href}>Manage {section.title}</Link>
+              </Button>
+            </CardContent>
+          </Card>
+        ))}
       </div>
     </div>
   );
