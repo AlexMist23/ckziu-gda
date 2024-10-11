@@ -1,7 +1,18 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
 import { Button } from "@/components/ui/button";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -14,51 +25,69 @@ import { toast } from "@/hooks/use-toast";
 import { postHelperClient, getHelperClient } from "@/lib/fetch-helper-client";
 import { Teacher, Subject } from "@/types/db";
 
+const formSchema = z.object({
+  name: z.string().min(2, {
+    message: "Name must be at least 2 characters.",
+  }),
+  email: z.string().email({
+    message: "Please enter a valid email.",
+  }),
+  subject_id: z.string().nullable(),
+});
+
 interface TeacherFormProps {
   onTeacherAdded: (teacher: Teacher) => void;
 }
 
 export function TeacherForm({ onTeacherAdded }: TeacherFormProps) {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [subjectId, setSubjectId] = useState<string | null>(null);
   const [subjects, setSubjects] = useState<Subject[]>([]);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingSubjects, setIsLoadingSubjects] = useState(true);
+
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      name: "",
+      email: "",
+      subject_id: null,
+    },
+  });
 
   useEffect(() => {
     const fetchSubjects = async () => {
       try {
-        const fetchedSubjects = await getHelperClient<Subject[]>(
+        const response = await getHelperClient<{ subjects: Subject[] }>(
           "/api/admin/subjects"
         );
-        setSubjects(fetchedSubjects);
+        setSubjects(response.subjects || []);
       } catch (error) {
         console.error("Failed to fetch subjects:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load subjects",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoadingSubjects(false);
       }
     };
+
     fetchSubjects();
   }, []);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    setIsLoading(true);
     try {
       const newTeacher = await postHelperClient<Teacher>(
         "/api/admin/teachers",
-        {
-          name,
-          email,
-          subject_id: subjectId ? parseInt(subjectId) : null,
-        }
+        values
       );
+      onTeacherAdded(newTeacher);
+      form.reset();
       toast({
         title: "Success",
         description: "Teacher added successfully",
       });
-      onTeacherAdded(newTeacher);
-      setName("");
-      setEmail("");
-      setSubjectId(null);
     } catch (error) {
       console.error(error);
       toast({
@@ -66,42 +95,85 @@ export function TeacherForm({ onTeacherAdded }: TeacherFormProps) {
         description: "Failed to add teacher",
         variant: "destructive",
       });
+    } finally {
+      setIsLoading(false);
     }
-    setIsSubmitting(false);
-  };
+  }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 mb-8">
-      <Input
-        type="text"
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-        placeholder="Teacher Name"
-        required
-      />
-      <Input
-        type="email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        placeholder="Email"
-        required
-      />
-      <Select value={subjectId || undefined} onValueChange={setSubjectId}>
-        <SelectTrigger>
-          <SelectValue placeholder="Select a subject" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="null">No Subject</SelectItem>
-          {subjects.map((subject) => (
-            <SelectItem key={subject.id} value={subject.id.toString()}>
-              {subject.name}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-      <Button type="submit" disabled={isSubmitting}>
-        {isSubmitting ? "Adding..." : "Add Teacher"}
-      </Button>
-    </form>
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+        <FormField
+          control={form.control}
+          name="name"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Name</FormLabel>
+              <FormControl>
+                <Input placeholder="John Doe" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="email"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Email</FormLabel>
+              <FormControl>
+                <Input placeholder="johndoe@example.com" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="subject_id"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Subject</FormLabel>
+              <Select
+                onValueChange={field.onChange}
+                value={field.value || undefined}
+              >
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a subject" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="null">No Subject</SelectItem>
+                  {isLoadingSubjects ? (
+                    <SelectItem value="loading" disabled>
+                      Loading subjects...
+                    </SelectItem>
+                  ) : subjects.length > 0 ? (
+                    subjects.map((subject) => (
+                      <SelectItem
+                        key={subject.id}
+                        value={subject.id.toString()}
+                      >
+                        {subject.name}
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <SelectItem value="none" disabled>
+                      No subjects available
+                    </SelectItem>
+                  )}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <Button type="submit" disabled={isLoading}>
+          {isLoading ? "Adding..." : "Add Teacher"}
+        </Button>
+      </form>
+    </Form>
   );
 }
