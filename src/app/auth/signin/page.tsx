@@ -30,6 +30,12 @@ export default function SignIn() {
             <Github className="mr-2 h-4 w-4" />
             Sign in with GitHub
           </Button>
+          <Button
+            className="w-full"
+            onClick={() => signIn("google", { callbackUrl: "/" })}
+          >
+            Sign in with Google
+          </Button>
         </CardContent>
         <CardFooter className="flex justify-center">
           <p className="text-sm text-muted-foreground">

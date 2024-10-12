@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
-import { Lecture } from "@/types/db";
+import { Schedule, Lecture } from "@/types/types";
+import { ScheduleResponse, UpdateScheduleRequest } from "@/types/api";
 
 export async function GET(
   request: NextRequest,
@@ -17,7 +18,7 @@ export async function GET(
 
     const {
       rows: [schedule],
-    } = await sql`
+    } = await sql<Schedule>`
       SELECT id, date
       FROM schedules
       WHERE id = ${scheduleId}
@@ -30,7 +31,9 @@ export async function GET(
       );
     }
 
-    const { rows: lectures } = await sql`
+    const { rows: lectures } = await sql<
+      Lecture & { subject_name: string; teacher_name: string }
+    >`
       SELECT l.*, s.name as subject_name, t.name as teacher_name
       FROM lectures l
       JOIN schedule_lectures sl ON l.id = sl.lecture_id
@@ -40,10 +43,22 @@ export async function GET(
       ORDER BY l.start_time ASC
     `;
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const result: any = {
+    const result: ScheduleResponse = {
       ...schedule,
-      lectures: lectures as Lecture[],
+      lectures: lectures.map((lecture) => ({
+        id: lecture.id,
+        subject_id: lecture.subject_id,
+        teacher_id: lecture.teacher_id,
+        start_time: lecture.start_time,
+        end_time: lecture.end_time,
+        room: lecture.room,
+        subject: { id: lecture.subject_id, name: lecture.subject_name },
+        teacher: {
+          id: lecture.teacher_id,
+          name: lecture.teacher_name,
+          email: "",
+        }, // Email is not fetched in this query
+      })),
     };
 
     return NextResponse.json(result);
@@ -69,7 +84,7 @@ export async function PUT(
       );
     }
 
-    const { date, lectures } = await request.json();
+    const { date, lectures } = (await request.json()) as UpdateScheduleRequest;
 
     // Update schedule date
     await sql`
@@ -88,10 +103,10 @@ export async function PUT(
     for (const lecture of lectures) {
       const {
         rows: [newLecture],
-      } = await sql`
+      } = await sql<Lecture>`
         INSERT INTO lectures (subject_id, teacher_id, start_time, end_time, room)
         VALUES (${lecture.subject_id}, ${lecture.teacher_id}, ${lecture.start_time}, ${lecture.end_time}, ${lecture.room})
-        RETURNING id
+        RETURNING id, subject_id, teacher_id, start_time, end_time, room
       `;
 
       await sql`
@@ -103,13 +118,15 @@ export async function PUT(
     // Fetch updated schedule
     const {
       rows: [updatedSchedule],
-    } = await sql`
+    } = await sql<Schedule>`
       SELECT id, date
       FROM schedules
       WHERE id = ${scheduleId}
     `;
 
-    const { rows: updatedLectures } = await sql`
+    const { rows: updatedLectures } = await sql<
+      Lecture & { subject_name: string; teacher_name: string }
+    >`
       SELECT l.*, s.name as subject_name, t.name as teacher_name
       FROM lectures l
       JOIN schedule_lectures sl ON l.id = sl.lecture_id
@@ -119,10 +136,22 @@ export async function PUT(
       ORDER BY l.start_time ASC
     `;
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const result: any = {
+    const result: ScheduleResponse = {
       ...updatedSchedule,
-      lectures: updatedLectures as Lecture[],
+      lectures: updatedLectures.map((lecture) => ({
+        id: lecture.id,
+        subject_id: lecture.subject_id,
+        teacher_id: lecture.teacher_id,
+        start_time: lecture.start_time,
+        end_time: lecture.end_time,
+        room: lecture.room,
+        subject: { id: lecture.subject_id, name: lecture.subject_name },
+        teacher: {
+          id: lecture.teacher_id,
+          name: lecture.teacher_name,
+          email: "",
+        }, // Email is not fetched in this query
+      })),
     };
 
     return NextResponse.json(result);

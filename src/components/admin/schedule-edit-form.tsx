@@ -37,8 +37,11 @@ import { format } from "date-fns";
 const startTimes = ["08:00", "09:40", "11:40", "13:20", "15:00"] as const;
 const endTimes = ["09:30", "11:10", "13:10", "14:50", "16:30"] as const;
 
+type StartTime = (typeof startTimes)[number];
+type EndTime = (typeof endTimes)[number];
+
 const lectureSchema = z.object({
-  id: z.number(),
+  id: z.number().optional(),
   subject_id: z.number().min(1, "Subject is required"),
   teacher_id: z.number().min(1, "Teacher is required"),
   start_time: z.enum(startTimes),
@@ -54,6 +57,8 @@ const formSchema = z.object({
   lectures: z.array(lectureSchema),
 });
 
+type FormValues = z.infer<typeof formSchema>;
+
 interface ScheduleEditFormProps {
   schedule: Schedule;
   onScheduleUpdated: (schedule: Schedule) => void;
@@ -68,13 +73,19 @@ export function ScheduleEditForm({
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingData, setIsLoadingData] = useState(true);
 
-  const form = useForm<z.infer<typeof formSchema>>({
+  const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       id: schedule.id,
       date: format(new Date(schedule.date), "yyyy-MM-dd"),
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      lectures: schedule.lectures as any,
+      lectures: schedule.lectures.map((lecture) => ({
+        id: lecture.id,
+        subject_id: lecture.subject_id,
+        teacher_id: lecture.teacher_id,
+        start_time: validateStartTime(lecture.start_time),
+        end_time: validateEndTime(lecture.end_time),
+        room: lecture.room,
+      })),
     },
   });
 
@@ -82,6 +93,16 @@ export function ScheduleEditForm({
     control: form.control,
     name: "lectures",
   });
+
+  function validateStartTime(time: string): StartTime {
+    return startTimes.includes(time as StartTime)
+      ? (time as StartTime)
+      : startTimes[0];
+  }
+
+  function validateEndTime(time: string): EndTime {
+    return endTimes.includes(time as EndTime) ? (time as EndTime) : endTimes[0];
+  }
 
   useEffect(() => {
     const fetchSubjectsAndTeachers = async () => {
@@ -121,10 +142,7 @@ export function ScheduleEditForm({
   }, []);
 
   const getTeachersForSubject = (subjectId: number) => {
-    return teachers.filter((teacher) =>
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      teacher.subjects.includes(subjectId as any)
-    );
+    return teachers.filter((teacher) => teacher.subjects.includes(subjectId));
   };
 
   const handleSubjectChange = (index: number, subjectId: number) => {
@@ -137,11 +155,9 @@ export function ScheduleEditForm({
     }
   };
 
-  const handleStartTimeChange = (index: number, startTime: string) => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    form.setValue(`lectures.${index}.start_time`, startTime as any);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const startIndex = startTimes.indexOf(startTime as any);
+  const handleStartTimeChange = (index: number, startTime: StartTime) => {
+    form.setValue(`lectures.${index}.start_time`, startTime);
+    const startIndex = startTimes.indexOf(startTime);
     if (startIndex !== -1 && startIndex + 1 < endTimes.length) {
       form.setValue(`lectures.${index}.end_time`, endTimes[startIndex + 1]);
     }
@@ -154,16 +170,15 @@ export function ScheduleEditForm({
     const initialEndTime = endTimes[startIndex + 1];
 
     append({
-      id: Date.now(), // Temporary ID for new lectures
       subject_id: 0,
       teacher_id: 0,
       start_time: initialStartTime,
       end_time: initialEndTime,
-      room: "",
+      room: null,
     });
   };
 
-  async function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(values: FormValues) {
     setIsLoading(true);
     try {
       const updatedSchedule = await putHelperClient<Schedule>(
@@ -315,7 +330,7 @@ export function ScheduleEditForm({
                         <FormItem>
                           <Select
                             onValueChange={(value) =>
-                              handleStartTimeChange(index, value)
+                              handleStartTimeChange(index, value as StartTime)
                             }
                             value={field.value}
                           >

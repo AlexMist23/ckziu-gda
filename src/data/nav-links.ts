@@ -65,10 +65,14 @@ export const adminNavLinks = [
   },
   {
     icon: Database,
+    label: "Database",
+    href: "/admin/database",
+  },
+  {
+    icon: Database,
     label: "Database Status",
     href: "/admin/database-status",
   },
-
   {
     icon: Settings,
     label: "Settings",

@@ -1,6 +1,6 @@
 import { fetchHelperServer } from "@/lib/fetch-helper-server";
 import { TeacherEditForm } from "@/components/admin/teacher-edit-form";
-import { Teacher } from "@/types/db";
+import { Teacher } from "@/types/types";
 
 export default async function EditTeacherPage({
   params,

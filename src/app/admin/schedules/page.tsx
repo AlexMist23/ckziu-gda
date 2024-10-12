@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { ScheduleForm } from "@/components/admin/schedule-form";
 import { ScheduleEditForm } from "@/components/admin/schedule-edit-form";
 import { ScheduleList } from "@/components/admin/schedule-list";
-import { Schedule, Subject, Teacher } from "@/types/db";
+import { Schedule, Subject, Teacher } from "@/types/types";
 import { useToast } from "@/hooks/use-toast";
 import { getHelperClient } from "@/lib/fetch-helper-client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";

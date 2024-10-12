@@ -1,6 +1,6 @@
 import { fetchHelperServer } from "@/lib/fetch-helper-server";
 import { TeacherList } from "@/components/admin/teacher-list";
-import { Teacher } from "@/types/db";
+import { Teacher } from "@/types/types";
 
 interface TeachersResponse {
   teachers: Teacher[];

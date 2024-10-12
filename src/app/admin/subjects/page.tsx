@@ -1,6 +1,6 @@
 import { fetchHelperServer } from "@/lib/fetch-helper-server";
 import { SubjectList } from "@/components/admin/subject-list";
-import { Subject } from "@/types/db";
+import { Subject } from "@/types/types";
 
 interface SubjectsResponse {
   subjects: Subject[];

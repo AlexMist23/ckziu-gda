@@ -37,7 +37,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { getHelperClient, postHelperClient } from "@/lib/fetch-helper-client";
-import { ScheduleWithLectures } from "@/types/db";
+import { ScheduleResponse } from "@/types/api";
 import { useToast } from "@/hooks/use-toast";
 
 export default function ScheduleView() {
@@ -45,7 +45,7 @@ export default function ScheduleView() {
     from: subDays(new Date(), 1),
     to: addDays(new Date(), 14),
   });
-  const [schedules, setSchedules] = useState<ScheduleWithLectures[]>([]);
+  const [schedules, setSchedules] = useState<ScheduleResponse[]>([]);
   const [presences, setPresences] = useState<Record<number, boolean>>({});
   const { toast } = useToast();
 
@@ -60,7 +60,7 @@ export default function ScheduleView() {
 
   const fetchSchedules = async (fromDate: string, toDate: string) => {
     try {
-      const fetchedSchedules = await getHelperClient<ScheduleWithLectures[]>(
+      const fetchedSchedules = await getHelperClient<ScheduleResponse[]>(
         `/api/schedules?from=${fromDate}&to=${toDate}`
       );
       setSchedules(fetchedSchedules);
@@ -75,7 +75,7 @@ export default function ScheduleView() {
     }
   };
 
-  const fetchPresences = async (schedules: ScheduleWithLectures[]) => {
+  const fetchPresences = async (schedules: ScheduleResponse[]) => {
     const lectureIds = schedules.flatMap((schedule) =>
       schedule.lectures.map((lecture) => lecture.id)
     );
@@ -202,8 +202,8 @@ export default function ScheduleView() {
                         {formatTime(lecture.start_time)} -{" "}
                         {formatTime(lecture.end_time)}
                       </TableCell>
-                      <TableCell>{lecture.subject_name}</TableCell>
-                      <TableCell>{lecture.teacher_name}</TableCell>
+                      <TableCell>{lecture.subject.name}</TableCell>
+                      <TableCell>{lecture.teacher.name}</TableCell>
                       <TableCell>{lecture.room || "N/A"}</TableCell>
                       <TableCell className="text-right">
                         <Button

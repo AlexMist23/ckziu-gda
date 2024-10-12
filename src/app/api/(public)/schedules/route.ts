@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
 import { auth } from "@/lib/auth";
-import { ScheduleWithLectures } from "@/types/db";
+import { ScheduleWithLectures } from "@/types/types";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);

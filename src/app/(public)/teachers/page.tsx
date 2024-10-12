@@ -12,7 +12,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { getHelperClient } from "@/lib/fetch-helper-client";
-import { Teacher } from "@/types/db";
+import { Teacher } from "@/types/types";
 import { useToast } from "@/hooks/use-toast";
 import { Mail, Book, User } from "lucide-react";
 

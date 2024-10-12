@@ -8,10 +8,12 @@ import {
   CardContent,
   CardFooter,
 } from "@/components/ui/card";
-import { User } from "@/types/db";
+import { User } from "@/types/types";
 import Link from "next/link";
 
-export default async function UserPage(props: { params: Promise<{ id: string }> }) {
+export default async function UserPage(props: {
+  params: Promise<{ id: string }>;
+}) {
   const params = await props.params;
   if (!params.id) {
     notFound();
