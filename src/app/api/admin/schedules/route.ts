@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
     `;
 
     for (const schedule of schedules) {
-      const { rows: lectures } = await sql`
+      const { rows: lectures } = await sql<Lecture>`
         SELECT l.*, s.name as subject_name, t.name as teacher_name
         FROM lectures l
         JOIN schedule_lectures sl ON l.id = sl.lecture_id
@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
         WHERE sl.schedule_id = ${schedule.id}
         ORDER BY l.start_time ASC
       `;
-      schedule.lectures = lectures;
+      (schedule as Schedule).lectures = lectures;
     }
 
     return NextResponse.json({
@@ -69,28 +69,8 @@ export async function POST(request: NextRequest) {
       RETURNING id, date
     `;
 
-    // Insert the lectures and create schedule_lectures associations
-    const insertedLectures = await Promise.all(
-      lectures.map(async (lecture: Lecture) => {
-        const {
-          rows: [insertedLecture],
-        } = await sql`
-        INSERT INTO lectures (subject_id, teacher_id, start_time, end_time, room)
-        VALUES (${lecture.subject_id}, ${lecture.teacher_id}, ${lecture.start_time}, ${lecture.end_time}, ${lecture.room})
-        RETURNING id, subject_id, teacher_id, start_time, end_time, room
-      `;
-
-        await sql`
-        INSERT INTO schedule_lectures (schedule_id, lecture_id)
-        VALUES (${schedule.id}, ${insertedLecture.id})
-      `;
-
-        return insertedLecture;
-      })
-    );
-
     // Fetch the associated lectures for the new schedule with subject and teacher names
-    const { rows: lecturesWithNames } = await sql`
+    const { rows: lecturesWithNames } = await sql<Lecture>`
       SELECT l.*, s.name as subject_name, t.name as teacher_name
       FROM lectures l
       JOIN schedule_lectures sl ON l.id = sl.lecture_id

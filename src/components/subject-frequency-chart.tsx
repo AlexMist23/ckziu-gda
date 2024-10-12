@@ -1,5 +1,11 @@
 import React from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   Tooltip,
   TooltipContent,
@@ -7,6 +13,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { ChartContainer } from "@/components/ui/chart";
+import { cn } from "@/lib/utils";
 
 interface SubjectFrequencyProps {
   subjectName: string;
@@ -21,40 +28,40 @@ export function SubjectFrequencyChart({
   attendedHours,
   scheduledHours,
 }: SubjectFrequencyProps) {
-  // Ensure all values are numbers
   const attended = Number(attendedHours);
-  const scheduled = Number(scheduledHours);
+  const missed = Number(scheduledHours);
   const max = Number(maxHours);
 
   return (
-    <Card className="w-full">
+    <Card className="flex flex-col w-full ">
       <CardHeader>
         <CardTitle>{subjectName}</CardTitle>
       </CardHeader>
       <CardContent>
         <ChartContainer
+          className="h-24 w-full"
           config={{
             attended: {
               label: "Attended",
-              color: "hsl(var(--chart-1))",
+              color: "hsl(var(--chart-attendance))",
             },
             scheduled: {
               label: "Scheduled",
-              color: "hsl(var(--chart-2))",
+              color: "hsl(var(--chart-missed))",
             },
             remaining: {
               label: "Remaining",
-              color: "hsl(var(--chart-3))",
+              color: "hsl(var(--chart-remaining))",
             },
           }}
         >
           <div className="flex flex-wrap gap-1">
             {Array.from({ length: max }).map((_, index) => {
-              let status: "attended" | "scheduled" | "remaining" = "remaining";
+              let status: "attended" | "missed" | "remaining" = "remaining";
               if (index < attended) {
                 status = "attended";
-              } else if (index < scheduled) {
-                status = "scheduled";
+              } else if (index < missed) {
+                status = "missed";
               }
 
               return (
@@ -62,16 +69,16 @@ export function SubjectFrequencyChart({
                   <Tooltip>
                     <TooltipTrigger>
                       <div
-                        className={`w-4 h-4 rounded`}
-                        style={{
-                          backgroundColor: `var(--color-${status})`,
-                        }}
+                        className={cn(
+                          `w-6 h-6 rounded`,
+                          status === "attended" ? "bg-chart-attendance" : "",
+                          status === "missed" ? "bg-chart-missed" : "",
+                          status === "remaining" ? "bg-chart-remaining" : ""
+                        )}
                       />
                     </TooltipTrigger>
                     <TooltipContent>
-                      <p>
-                        Hour {index + 1}: {status}
-                      </p>
+                      <p>{status}</p>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
@@ -79,11 +86,11 @@ export function SubjectFrequencyChart({
             })}
           </div>
         </ChartContainer>
-        <div className="mt-2 text-sm text-muted-foreground">
-          Attended: {attended} | Scheduled: {scheduled - attended} | Remaining:{" "}
-          {max - scheduled}
-        </div>
       </CardContent>
+      <CardFooter className="flex flex-col items-center">
+        Attended: {attended} | Missed: {missed - attended} | Remaining:{" "}
+        {max - missed}
+      </CardFooter>
     </Card>
   );
 }

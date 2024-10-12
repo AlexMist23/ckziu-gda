@@ -7,7 +7,7 @@ import { ScheduleEditForm } from "@/components/admin/schedule-edit-form";
 import { ScheduleList } from "@/components/admin/schedule-list";
 import { Schedule, Subject, Teacher } from "@/types/db";
 import { useToast } from "@/hooks/use-toast";
-import { getHelperClient, postHelperClient } from "@/lib/fetch-helper-client";
+import { getHelperClient } from "@/lib/fetch-helper-client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { format } from "date-fns";
 
@@ -44,30 +44,6 @@ export default function SchedulesPage() {
     };
     fetchData();
   }, [toast]);
-
-  const handleSubmit = async (data: Omit<Schedule, "id">) => {
-    try {
-      const newSchedule = await postHelperClient<Schedule>(
-        "/api/admin/schedules",
-        data as Record<string, unknown>
-      );
-
-      toast({
-        title: "Schedule Created",
-        description: "The schedule has been successfully saved.",
-      });
-
-      setSchedules([...schedules, newSchedule]);
-      router.refresh();
-    } catch (error) {
-      console.error("Failed to save schedule:", error);
-      toast({
-        title: "Error",
-        description: "Failed to save the schedule.",
-        variant: "destructive",
-      });
-    }
-  };
 
   const handleUpdate = async (updatedSchedule: Schedule) => {
     try {

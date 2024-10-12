@@ -10,5 +10,5 @@ export const MaxSubjectFrequency = [
   { subjectName: "Fizyka", hours: 8 },
   { subjectName: "Matematyka", hours: 21 },
   { subjectName: "Informatyka", hours: 9 },
-  { subjectName: "Konferencja", hours: 9 },
+  { subjectName: "Konferencja", hours: 1 },
 ];

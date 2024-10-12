@@ -73,7 +73,8 @@ export function ScheduleEditForm({
     defaultValues: {
       id: schedule.id,
       date: format(new Date(schedule.date), "yyyy-MM-dd"),
-      lectures: schedule.lectures,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      lectures: schedule.lectures as any,
     },
   });
 
@@ -121,7 +122,8 @@ export function ScheduleEditForm({
 
   const getTeachersForSubject = (subjectId: number) => {
     return teachers.filter((teacher) =>
-      teacher.subject_ids.includes(subjectId)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      teacher.subjects.includes(subjectId as any)
     );
   };
 
@@ -136,7 +138,9 @@ export function ScheduleEditForm({
   };
 
   const handleStartTimeChange = (index: number, startTime: string) => {
-    form.setValue(`lectures.${index}.start_time`, startTime);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    form.setValue(`lectures.${index}.start_time`, startTime as any);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const startIndex = startTimes.indexOf(startTime as any);
     if (startIndex !== -1 && startIndex + 1 < endTimes.length) {
       form.setValue(`lectures.${index}.end_time`, endTimes[startIndex + 1]);
@@ -358,7 +362,11 @@ export function ScheduleEditForm({
                       render={({ field }) => (
                         <FormItem>
                           <FormControl>
-                            <Input {...field} placeholder="Room" />
+                            <Input
+                              {...field}
+                              placeholder="Room"
+                              value={field.value ?? ""}
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
