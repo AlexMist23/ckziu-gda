@@ -40,7 +40,8 @@ export async function GET(
       ORDER BY l.start_time ASC
     `;
 
-    const result: Schedule = {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const result: any = {
       ...schedule,
       lectures: lectures as Lecture[],
     };
@@ -118,7 +119,8 @@ export async function PUT(
       ORDER BY l.start_time ASC
     `;
 
-    const result: Schedule = {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const result: any = {
       ...updatedSchedule,
       lectures: updatedLectures as Lecture[],
     };
