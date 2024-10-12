@@ -15,7 +15,7 @@ export async function POST(request: Request) {
     for (const [subjectName, hours] of Object.entries(manualInput)) {
       await sql`
         INSERT INTO manual_frequencies (user_id, subject_name, hours)
-        VALUES (${session.user.id}, ${subjectName}, ${hours})
+        VALUES (${session.user.id}, ${subjectName}, ${hours as string})
         ON CONFLICT (user_id, subject_name)
         DO UPDATE SET hours = EXCLUDED.hours
       `;
