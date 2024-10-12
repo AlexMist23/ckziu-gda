@@ -34,8 +34,10 @@ const formSchema = z.object({
   }),
 });
 
+type FormValues = z.infer<typeof formSchema>;
+
 interface TeacherEditFormProps {
-  teacher: Teacher;
+  teacher: Teacher & { subjects?: number[] };
 }
 
 export function TeacherEditForm({ teacher }: TeacherEditFormProps) {
@@ -45,12 +47,12 @@ export function TeacherEditForm({ teacher }: TeacherEditFormProps) {
   const [isLoadingSubjects, setIsLoadingSubjects] = useState(true);
   const [isSubjectsOpen, setIsSubjectsOpen] = useState(false);
 
-  const form = useForm<z.infer<typeof formSchema>>({
+  const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: teacher.name,
       email: teacher.email,
-      subject_ids: teacher.subject_ids || [],
+      subject_ids: teacher.subjects || [],
     },
   });
 
@@ -76,7 +78,7 @@ export function TeacherEditForm({ teacher }: TeacherEditFormProps) {
     fetchSubjects();
   }, []);
 
-  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+  const onSubmit = async (values: FormValues) => {
     setIsSubmitting(true);
     try {
       await putHelperClient<Teacher>(

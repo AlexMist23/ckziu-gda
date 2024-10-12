@@ -17,6 +17,7 @@ export interface Teacher {
   name: string;
   email: string;
   subjects: Subject[];
+  subject_ids: number | null;
 }
 
 export interface Book {
