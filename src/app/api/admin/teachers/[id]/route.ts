@@ -1,70 +1,182 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
+import { z } from "zod";
 
-export async function GET(request: Request, props: { params: Promise<{ id: string }> }) {
-  const params = await props.params;
+const teacherSchema = z.object({
+  name: z.string().min(2),
+  email: z.string().email(),
+  subject_ids: z.array(z.number().int().positive()).min(1),
+});
+
+export async function GET(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
   try {
-    const { rows } = await sql`
-      SELECT t.*, s.name as subject_name 
-      FROM teachers t 
-      LEFT JOIN subjects s ON t.subject_id = s.id 
-      WHERE t.id = ${params.id}
+    const teacherId = parseInt(params.id, 10);
+    if (isNaN(teacherId)) {
+      return NextResponse.json(
+        { error: "Invalid teacher ID" },
+        { status: 400 }
+      );
+    }
+
+    const teacherResult = await sql`
+      SELECT t.id, t.name, t.email, array_agg(s.id) as subject_ids
+      FROM teachers t
+      LEFT JOIN teacher_subjects ts ON t.id = ts.teacher_id
+      LEFT JOIN subjects s ON ts.subject_id = s.id
+      WHERE t.id = ${teacherId}
+      GROUP BY t.id, t.name, t.email
     `;
-    if (rows.length === 0) {
+
+    if (teacherResult.rows.length === 0) {
       return NextResponse.json({ error: "Teacher not found" }, { status: 404 });
     }
-    return NextResponse.json(rows[0]);
+
+    const teacher = teacherResult.rows[0];
+    teacher.subject_ids = teacher.subject_ids.filter(
+      (id: number | null) => id !== null
+    );
+
+    return NextResponse.json(teacher);
   } catch (error) {
-    console.error("Failed to fetch teacher:", error);
+    console.error("Database error:", error);
     return NextResponse.json(
-      { error: "Failed to fetch teacher" },
+      { error: "Internal Server Error" },
       { status: 500 }
     );
   }
 }
 
-export async function PUT(request: Request, props: { params: Promise<{ id: string }> }) {
-  const params = await props.params;
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
   try {
-    const { name, email, subject_id } = await request.json();
+    const teacherId = parseInt(params.id, 10);
+    if (isNaN(teacherId)) {
+      return NextResponse.json(
+        { error: "Invalid teacher ID" },
+        { status: 400 }
+      );
+    }
 
-    const { rows } = await sql`
-      UPDATE teachers
-      SET name = ${name}, email = ${email}, subject_id = ${subject_id}, updated_at = NOW()
-      WHERE id = ${params.id}
-      RETURNING *
+    const body = await request.json();
+    const validationResult = teacherSchema.safeParse(body);
+
+    if (!validationResult.success) {
+      return NextResponse.json(
+        { error: validationResult.error.errors },
+        { status: 400 }
+      );
+    }
+
+    const { name, email, subject_ids } = validationResult.data;
+
+    await sql`BEGIN`;
+
+    try {
+      await sql`
+        UPDATE teachers
+        SET name = ${name}, email = ${email}
+        WHERE id = ${teacherId}
+      `;
+
+      await sql`
+        DELETE FROM teacher_subjects
+        WHERE teacher_id = ${teacherId}
+      `;
+
+      if (subject_ids.length > 0) {
+        const subjectValues = subject_ids
+          .map((id) => `(${teacherId}, ${id})`)
+          .join(", ");
+        await sql.query(`
+          INSERT INTO teacher_subjects (teacher_id, subject_id)
+          VALUES ${subjectValues}
+        `);
+      }
+
+      await sql`COMMIT`;
+    } catch (error) {
+      await sql`ROLLBACK`;
+      throw error;
+    }
+
+    const updatedTeacher = await sql`
+      SELECT t.id, t.name, t.email, array_agg(s.id) as subject_ids
+      FROM teachers t
+      LEFT JOIN teacher_subjects ts ON t.id = ts.teacher_id
+      LEFT JOIN subjects s ON ts.subject_id = s.id
+      WHERE t.id = ${teacherId}
+      GROUP BY t.id, t.name, t.email
     `;
 
-    if (rows.length === 0) {
+    if (updatedTeacher.rows.length === 0) {
       return NextResponse.json({ error: "Teacher not found" }, { status: 404 });
     }
-    return NextResponse.json(rows[0]);
+
+    const teacher = updatedTeacher.rows[0];
+    teacher.subject_ids = teacher.subject_ids.filter(
+      (id: number | null) => id !== null
+    );
+
+    return NextResponse.json(teacher);
   } catch (error) {
-    console.error("Failed to update teacher:", error);
+    console.error("Database error:", error);
     return NextResponse.json(
-      { error: "Failed to update teacher" },
+      { error: "Internal Server Error" },
       { status: 500 }
     );
   }
 }
 
-export async function DELETE(request: Request, props: { params: Promise<{ id: string }> }) {
-  const params = await props.params;
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
   try {
-    const { rows } = await sql`
-      DELETE FROM teachers
-      WHERE id = ${params.id}
-      RETURNING *
-    `;
-
-    if (rows.length === 0) {
-      return NextResponse.json({ error: "Teacher not found" }, { status: 404 });
+    const teacherId = parseInt(params.id, 10);
+    if (isNaN(teacherId)) {
+      return NextResponse.json(
+        { error: "Invalid teacher ID" },
+        { status: 400 }
+      );
     }
-    return NextResponse.json({ message: "Teacher deleted successfully" });
+
+    await sql`BEGIN`;
+
+    try {
+      await sql`
+        DELETE FROM teacher_subjects
+        WHERE teacher_id = ${teacherId}
+      `;
+
+      const result = await sql`
+        DELETE FROM teachers
+        WHERE id = ${teacherId}
+        RETURNING id
+      `;
+
+      await sql`COMMIT`;
+
+      if (result.rowCount === 0) {
+        return NextResponse.json(
+          { error: "Teacher not found" },
+          { status: 404 }
+        );
+      }
+
+      return NextResponse.json({ message: "Teacher deleted successfully" });
+    } catch (error) {
+      await sql`ROLLBACK`;
+      throw error;
+    }
   } catch (error) {
-    console.error("Failed to delete teacher:", error);
+    console.error("Database error:", error);
     return NextResponse.json(
-      { error: "Failed to delete teacher" },
+      { error: "Internal Server Error" },
       { status: 500 }
     );
   }

@@ -1,38 +1,18 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
 
-export async function GET(request: NextRequest) {
-  const searchParams = request.nextUrl.searchParams;
-  const page = parseInt(searchParams.get("page") || "1", 10);
-  const limit = parseInt(searchParams.get("limit") || "10", 10);
-  const offset = (page - 1) * limit;
-
+export async function GET() {
   try {
-    const countResult = await sql`SELECT COUNT(*) FROM subjects`;
-    const totalCount = parseInt(countResult.rows[0].count, 10);
-
     const { rows } = await sql`
-      SELECT * FROM subjects 
-      ORDER BY name ASC 
-      LIMIT ${limit} OFFSET ${offset}
+      SELECT id, name FROM subjects 
+      ORDER BY name ASC
     `;
 
-    return NextResponse.json({
-      subjects: rows,
-      pagination: {
-        currentPage: page,
-        totalPages: Math.ceil(totalCount / limit),
-        totalItems: totalCount,
-      },
-    });
+    return NextResponse.json(rows);
   } catch (error) {
     console.error("Failed to fetch subjects:", error);
     return NextResponse.json(
-      {
-        error: "Failed to fetch subjects",
-        subjects: [],
-        pagination: { currentPage: 1, totalPages: 1, totalItems: 0 },
-      },
+      { error: "Failed to fetch subjects" },
       { status: 500 }
     );
   }
@@ -45,7 +25,7 @@ export async function POST(request: Request) {
     const { rows } = await sql`
       INSERT INTO subjects (name)
       VALUES (${name})
-      RETURNING *
+      RETURNING id, name
     `;
 
     return NextResponse.json(rows[0]);

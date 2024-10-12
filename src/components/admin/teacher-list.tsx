@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/pagination";
 import { toast } from "@/hooks/use-toast";
 import { getHelperClient, deleteHelperClient } from "@/lib/fetch-helper-client";
-import { Teacher } from "@/types/db";
+import { Teacher, Subject } from "@/types/db";
 import { TeacherForm } from "./teacher-form";
 
 interface TeacherListProps {
@@ -37,10 +37,18 @@ export function TeacherList({
   initialTeachers,
   initialPagination,
 }: TeacherListProps) {
-  const [teachers, setTeachers] = useState<Teacher[]>(initialTeachers || []);
+  const [teachers, setTeachers] = useState<Teacher[]>(initialTeachers);
+  const [subjects, setSubjects] = useState<Subject[]>([]);
   const [pagination, setPagination] = useState(initialPagination);
   const [deleting, setDeleting] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (initialTeachers.length === 0) {
+      fetchTeachers(1);
+    }
+    fetchSubjects();
+  }, []);
 
   const fetchTeachers = async (page: number) => {
     setLoading(true);
@@ -71,6 +79,32 @@ export function TeacherList({
       setTeachers([]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchSubjects = async () => {
+    try {
+      const fetchedSubjects = await getHelperClient<Subject[]>(
+        "/api/admin/subjects"
+      );
+      if (Array.isArray(fetchedSubjects)) {
+        setSubjects(fetchedSubjects);
+      } else {
+        console.error("Received non-array subjects data:", fetchedSubjects);
+        toast({
+          title: "Error",
+          description: "Received invalid data format for subjects",
+          variant: "destructive",
+        });
+        setSubjects([]);
+      }
+    } catch (error) {
+      console.error("Failed to fetch subjects:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load subjects",
+        variant: "destructive",
+      });
     }
   };
 
@@ -110,94 +144,112 @@ export function TeacherList({
     }
   };
 
-  if (loading) {
+  const getSubjectNames = (subjectIds: number[]) => {
+    return subjectIds
+      .map((id) => subjects.find((subject) => subject.id === id)?.name)
+      .filter(Boolean)
+      .join(", ");
+  };
+
+  if (loading && teachers.length === 0) {
     return <div>Loading...</div>;
   }
 
   return (
-    <div>
-      <TeacherForm onTeacherAdded={handleTeacherAdded} />
-      {teachers.length > 0 ? (
-        <>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Subject</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {teachers.map((teacher) => (
-                <TableRow key={teacher.id}>
-                  <TableCell>{teacher.name}</TableCell>
-                  <TableCell>{teacher.email}</TableCell>
-                  <TableCell>{teacher.subject_name || "No Subject"}</TableCell>
-                  <TableCell>
-                    <div className="space-x-2">
-                      <Link
-                        href={`/admin/teachers/${teacher.id}/edit`}
-                        passHref
-                      >
-                        <Button variant="outline">Edit</Button>
-                      </Link>
-                      <Button
-                        variant="destructive"
-                        onClick={() => handleDelete(teacher.id)}
-                        disabled={deleting === teacher.id}
-                      >
-                        {deleting === teacher.id ? "Deleting..." : "Delete"}
-                      </Button>
-                    </div>
-                  </TableCell>
+    <div className="space-y-6">
+      <div className="bg-card p-6 rounded-lg shadow">
+        <h2 className="text-2xl font-bold mb-4">Add New Teacher</h2>
+        <TeacherForm onTeacherAdded={handleTeacherAdded} />
+      </div>
+
+      <div className="bg-card p-6 rounded-lg shadow">
+        <h2 className="text-2xl font-bold mb-4">Teacher List</h2>
+        {teachers.length > 0 ? (
+          <>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Subjects</TableHead>
+                  <TableHead>Actions</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-          <Pagination className="mt-4">
-            <PaginationContent>
-              <PaginationItem>
-                <PaginationPrevious
-                  href="#"
-                  onClick={() => handlePageChange(pagination.currentPage - 1)}
-                  className={
-                    pagination.currentPage === 1
-                      ? "pointer-events-none opacity-50"
-                      : ""
-                  }
-                />
-              </PaginationItem>
-              {[...Array(pagination.totalPages)].map((_, i) => (
-                <PaginationItem key={i}>
-                  <PaginationLink
+              </TableHeader>
+              <TableBody>
+                {teachers.map((teacher) => (
+                  <TableRow key={teacher.id}>
+                    <TableCell>{teacher.name}</TableCell>
+                    <TableCell>{teacher.email}</TableCell>
+                    <TableCell>
+                      {teacher.subject_ids && teacher.subject_ids.length > 0
+                        ? getSubjectNames(teacher.subject_ids)
+                        : "No Subjects"}
+                    </TableCell>
+                    <TableCell>
+                      <div className="space-x-2">
+                        <Link
+                          href={`/admin/teachers/${teacher.id}/edit`}
+                          passHref
+                        >
+                          <Button variant="outline">Edit</Button>
+                        </Link>
+                        <Button
+                          variant="destructive"
+                          onClick={() => handleDelete(teacher.id)}
+                          disabled={deleting === teacher.id}
+                        >
+                          {deleting === teacher.id ? "Deleting..." : "Delete"}
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+            <Pagination className="mt-4">
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious
                     href="#"
-                    onClick={() => handlePageChange(i + 1)}
-                    isActive={pagination.currentPage === i + 1}
-                  >
-                    {i + 1}
-                  </PaginationLink>
+                    onClick={() => handlePageChange(pagination.currentPage - 1)}
+                    className={
+                      pagination.currentPage === 1
+                        ? "pointer-events-none opacity-50"
+                        : ""
+                    }
+                  />
                 </PaginationItem>
-              ))}
-              <PaginationItem>
-                <PaginationNext
-                  href="#"
-                  onClick={() => handlePageChange(pagination.currentPage + 1)}
-                  className={
-                    pagination.currentPage === pagination.totalPages
-                      ? "pointer-events-none opacity-50"
-                      : ""
-                  }
-                />
-              </PaginationItem>
-            </PaginationContent>
-          </Pagination>
-        </>
-      ) : (
-        <div className="text-center py-4">
-          No teachers found. Add a new teacher using the form above.
-        </div>
-      )}
+                {[...Array(pagination.totalPages)].map((_, i) => (
+                  <PaginationItem key={i}>
+                    <PaginationLink
+                      href="#"
+                      onClick={() => handlePageChange(i + 1)}
+                      isActive={pagination.currentPage === i + 1}
+                    >
+                      {i + 1}
+                    </PaginationLink>
+                  </PaginationItem>
+                ))}
+                <PaginationItem>
+                  <PaginationNext
+                    href="#"
+                    onClick={() => handlePageChange(pagination.currentPage + 1)}
+                    className={
+                      pagination.currentPage === pagination.totalPages
+                        ? "pointer-events-none opacity-50"
+                        : ""
+                    }
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
+          </>
+        ) : (
+          <div className="text-center py-4">
+            No teachers found. Add a new teacher using the form above.
+          </div>
+        )}
+      </div>
     </div>
   );
 }

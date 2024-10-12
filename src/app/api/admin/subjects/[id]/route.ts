@@ -1,13 +1,20 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
 
-export async function GET(request: Request, props: { params: Promise<{ id: string }> }) {
-  const params = await props.params;
+export async function GET(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
   try {
-    const { rows } = await sql`SELECT * FROM subjects WHERE id = ${params.id}`;
+    const { rows } = await sql`
+      SELECT id, name FROM subjects
+      WHERE id = ${params.id}
+    `;
+
     if (rows.length === 0) {
       return NextResponse.json({ error: "Subject not found" }, { status: 404 });
     }
+
     return NextResponse.json(rows[0]);
   } catch (error) {
     console.error("Failed to fetch subject:", error);
@@ -18,21 +25,24 @@ export async function GET(request: Request, props: { params: Promise<{ id: strin
   }
 }
 
-export async function PUT(request: Request, props: { params: Promise<{ id: string }> }) {
-  const params = await props.params;
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
   try {
     const { name } = await request.json();
 
     const { rows } = await sql`
       UPDATE subjects
-      SET name = ${name}, updated_at = NOW()
+      SET name = ${name}
       WHERE id = ${params.id}
-      RETURNING *
+      RETURNING id, name
     `;
 
     if (rows.length === 0) {
       return NextResponse.json({ error: "Subject not found" }, { status: 404 });
     }
+
     return NextResponse.json(rows[0]);
   } catch (error) {
     console.error("Failed to update subject:", error);
@@ -43,18 +53,20 @@ export async function PUT(request: Request, props: { params: Promise<{ id: strin
   }
 }
 
-export async function DELETE(request: Request, props: { params: Promise<{ id: string }> }) {
-  const params = await props.params;
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
   try {
-    const { rows } = await sql`
+    const { rowCount } = await sql`
       DELETE FROM subjects
       WHERE id = ${params.id}
-      RETURNING *
     `;
 
-    if (rows.length === 0) {
+    if (rowCount === 0) {
       return NextResponse.json({ error: "Subject not found" }, { status: 404 });
     }
+
     return NextResponse.json({ message: "Subject deleted successfully" });
   } catch (error) {
     console.error("Failed to delete subject:", error);

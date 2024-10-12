@@ -1,4 +1,13 @@
-import { Home, Users, Database, Settings, Book, Calendar } from "lucide-react";
+import {
+  Home,
+  Users,
+  Database,
+  Settings,
+  Book,
+  Calendar,
+  Ruler,
+  GraduationCap,
+} from "lucide-react";
 
 export const navLinks = [
   {
@@ -6,12 +15,16 @@ export const navLinks = [
     href: "/",
   },
   {
-    label: "Dashboard",
-    href: "/dashboard",
+    label: "Schedule",
+    href: "/schedule",
   },
   {
-    label: "Profile",
-    href: "/profile",
+    label: "Teachers",
+    href: "/teachers",
+  },
+  {
+    label: "Frequency",
+    href: "/frequency",
   },
   {
     label: "Contact",
@@ -31,7 +44,7 @@ export const adminNavLinks = [
     href: "/admin/users",
   },
   {
-    icon: Users,
+    icon: GraduationCap,
     label: "Teachers",
     href: "/admin/teachers",
   },
@@ -44,6 +57,11 @@ export const adminNavLinks = [
     icon: Book,
     label: "Books",
     href: "/admin/books",
+  },
+  {
+    icon: Ruler,
+    label: "Subjects",
+    href: "/admin/subjects",
   },
   {
     icon: Database,

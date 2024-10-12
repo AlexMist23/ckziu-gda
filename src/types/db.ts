@@ -7,12 +7,16 @@ export interface User {
   image: string | null;
 }
 
+export interface Subject {
+  id: number;
+  name: string;
+}
+
 export interface Teacher {
   id: number;
   name: string;
   email: string;
-  subject_id: number | null;
-  subject_name?: string | null;
+  subjects: Subject[];
 }
 
 export interface Book {
@@ -26,21 +30,30 @@ export interface Book {
   updated_at: Date;
 }
 
-export interface Subject {
+export interface Schedule {
   id: number;
-  name: string;
-  created_at: Date;
-  updated_at: Date;
+  date: string; // Format: 'YYYY-MM-DD'
 }
 
-export interface Schedule {
+export interface Lecture {
   id: number;
   subject_id: number;
   teacher_id: number;
-  day_of_week: number;
-  start_time: string;
-  end_time: string;
   room: string | null;
-  created_at: Date;
-  updated_at: Date;
+  start_time: "08:00" | "09:40" | "11:40" | "13:20" | "15:00";
+  end_time: "09:30" | "11:10" | "13:10" | "14:50" | "16:30";
+}
+
+export interface ScheduleWithLectures extends Schedule {
+  lectures: (Lecture & {
+    subject_name: string;
+    teacher_name: string;
+  })[];
+}
+
+export interface Presence {
+  id: number;
+  user_id: number;
+  lecture_id: number;
+  is_present: boolean;
 }

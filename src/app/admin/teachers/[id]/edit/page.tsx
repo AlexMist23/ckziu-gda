@@ -2,12 +2,11 @@ import { fetchHelperServer } from "@/lib/fetch-helper-server";
 import { TeacherEditForm } from "@/components/admin/teacher-edit-form";
 import { Teacher } from "@/types/db";
 
-export default async function EditTeacherPage(
-  props: {
-    params: Promise<{ id: string }>;
-  }
-) {
-  const params = await props.params;
+export default async function EditTeacherPage({
+  params,
+}: {
+  params: { id: string };
+}) {
   const teacher = (await fetchHelperServer(
     `/api/admin/teachers/${params.id}`
   )) as Teacher;
