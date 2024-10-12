@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/hooks/use-toast";
 import { putHelperClient } from "@/lib/fetch-helper-client";
-import { Subject } from "@/types/db";
+import { Subject } from "@/types/types";
 
 interface SubjectEditFormProps {
   subject: Subject;

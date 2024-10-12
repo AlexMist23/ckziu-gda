@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/select";
 import { toast } from "@/hooks/use-toast";
 import { fetchHelperClient } from "@/lib/fetch-helper-client";
-import { User } from "@/types/db";
+import { User } from "@/types/types";
 
 interface UserEditFormProps {
   user: User;
@@ -23,7 +23,9 @@ export function UserEditForm({ user }: UserEditFormProps) {
   const router = useRouter();
   const [name, setName] = useState(user.name || "");
   const [email, setEmail] = useState(user.email || "");
-  const [role, setRole] = useState<"user" | "admin">(user.role);
+  const [role, setRole] = useState<"user" | "admin">(
+    (user.role as "user" | "admin") || "user"
+  );
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {

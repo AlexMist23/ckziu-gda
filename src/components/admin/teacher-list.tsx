@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/pagination";
 import { toast } from "@/hooks/use-toast";
 import { getHelperClient, deleteHelperClient } from "@/lib/fetch-helper-client";
-import { Teacher, Subject } from "@/types/db";
+import { Teacher, Subject } from "@/types/types";
 import { TeacherForm } from "./teacher-form";
 
 interface TeacherListProps {
@@ -144,9 +144,12 @@ export function TeacherList({
     }
   };
 
-  const getSubjectNames = (subjectIds: number[]) => {
-    return subjectIds
-      .map((id) => subjects.find((subject) => subject.id === id)?.name)
+  const getSubjectNames = (teacher: Teacher) => {
+    return teacher.subjects
+      .map(
+        (subjectId) =>
+          subjects.find((subject) => subject.id === subjectId)?.name
+      )
       .filter(Boolean)
       .join(", ");
   };
@@ -181,8 +184,8 @@ export function TeacherList({
                     <TableCell>{teacher.name}</TableCell>
                     <TableCell>{teacher.email}</TableCell>
                     <TableCell>
-                      {teacher.subject_ids && teacher.subject_ids.length > 0
-                        ? getSubjectNames(teacher.subject_ids)
+                      {teacher.subjects && teacher.subjects.length > 0
+                        ? getSubjectNames(teacher)
                         : "No Subjects"}
                     </TableCell>
                     <TableCell>

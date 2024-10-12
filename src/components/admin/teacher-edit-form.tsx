@@ -20,7 +20,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "@/hooks/use-toast";
 import { putHelperClient, getHelperClient } from "@/lib/fetch-helper-client";
-import { Teacher, Subject } from "@/types/db";
+import { Teacher, Subject } from "@/types/types";
 
 const formSchema = z.object({
   name: z.string().min(2, {
@@ -52,7 +52,7 @@ export function TeacherEditForm({ teacher }: TeacherEditFormProps) {
     defaultValues: {
       name: teacher.name,
       email: teacher.email,
-      subject_ids: teacher.subjects.map(subject => subject.id),
+      subject_ids: teacher.subjects,
     },
   });
 

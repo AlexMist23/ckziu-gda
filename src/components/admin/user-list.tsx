@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/pagination";
 import { toast } from "@/hooks/use-toast";
 import { getHelperClient, deleteHelperClient } from "@/lib/fetch-helper-client";
-import { User } from "@/types/db";
+import { User } from "@/types/types";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface UserListProps {

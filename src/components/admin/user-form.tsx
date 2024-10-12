@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/select";
 import { toast } from "@/hooks/use-toast";
 import { postHelperClient } from "@/lib/fetch-helper-client";
-import { User } from "@/types/db";
+import { User } from "@/types/types";
 
 const formSchema = z.object({
   name: z.string().min(2, {

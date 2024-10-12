@@ -12,6 +12,13 @@ import {
   TableTeacherSubject,
   TableVerificationToken,
 } from "./db";
+export interface Teacher extends TableTeacher {
+  subjects: number[];
+}
+
+export interface TeacherWithSubjects extends Omit<TableTeacher, "subject_id"> {
+  subjects: TableSubject[];
+}
 
 export interface Schedule extends TableSchedule {
   lectures: Lecture[];

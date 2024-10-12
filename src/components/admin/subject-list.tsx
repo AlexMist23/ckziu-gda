@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/pagination";
 import { toast } from "@/hooks/use-toast";
 import { getHelperClient, deleteHelperClient } from "@/lib/fetch-helper-client";
-import { Subject } from "@/types/db";
+import { Subject } from "@/types/types";
 import { SubjectForm } from "./subject-form";
 
 interface SubjectListProps {
