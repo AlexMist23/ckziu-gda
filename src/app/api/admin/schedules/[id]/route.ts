@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
-import { Schedule, Lecture } from "@/types/db";
+import { Lecture } from "@/types/db";
 
 export async function GET(
   request: NextRequest,
