@@ -33,7 +33,7 @@ export interface Lecture extends TableLecture {
 export type Subject = TableSubject;
 
 export interface Teacher extends TableTeacher {
-  subjects: Subject[];
+  subjects: number[];
   lectures: Lecture[];
 }
 export interface SimpleTeacher {
