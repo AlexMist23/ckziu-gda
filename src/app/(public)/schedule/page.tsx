@@ -37,7 +37,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { getHelperClient, postHelperClient } from "@/lib/fetch-helper-client";
-import { ScheduleResponse } from "@/types/api";
+import { ScheduleWithLectures } from "@/types/types";
 import { useToast } from "@/hooks/use-toast";
 
 export default function ScheduleView() {
@@ -45,8 +45,10 @@ export default function ScheduleView() {
     from: subDays(new Date(), 1),
     to: addDays(new Date(), 14),
   });
-  const [schedules, setSchedules] = useState<ScheduleResponse[]>([]);
+  const [schedules, setSchedules] = useState<ScheduleWithLectures[]>([]);
   const [presences, setPresences] = useState<Record<number, boolean>>({});
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -59,35 +61,55 @@ export default function ScheduleView() {
   }, [date]);
 
   const fetchSchedules = async (fromDate: string, toDate: string) => {
+    setIsLoading(true);
+    setError(null);
     try {
-      const fetchedSchedules = await getHelperClient<ScheduleResponse[]>(
+      const fetchedSchedules = await getHelperClient<ScheduleWithLectures[]>(
         `/api/schedules?from=${fromDate}&to=${toDate}`
       );
-      setSchedules(fetchedSchedules);
-      fetchPresences(fetchedSchedules);
+      if (Array.isArray(fetchedSchedules)) {
+        setSchedules(fetchedSchedules);
+        fetchPresences(fetchedSchedules);
+      } else {
+        throw new Error("Invalid data format received from the server");
+      }
     } catch (error) {
       console.error("Failed to fetch schedules:", error);
+      setError("Failed to fetch schedules. Please try again later.");
       toast({
         title: "Error",
         description: "Failed to fetch schedules.",
         variant: "destructive",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const fetchPresences = async (schedules: ScheduleResponse[]) => {
+  const fetchPresences = async (schedules: ScheduleWithLectures[]) => {
     const lectureIds = schedules.flatMap((schedule) =>
       schedule.lectures.map((lecture) => lecture.id)
     );
-    const presencePromises = lectureIds.map((id) =>
-      getHelperClient<{ is_present: boolean }>(`/api/presences?lectureId=${id}`)
-    );
-    const presenceResults = await Promise.all(presencePromises);
-    const newPresences: Record<number, boolean> = {};
-    presenceResults.forEach((result, index) => {
-      newPresences[lectureIds[index]] = result.is_present;
-    });
-    setPresences(newPresences);
+    try {
+      const presencePromises = lectureIds.map((id) =>
+        getHelperClient<{ is_present: boolean }>(
+          `/api/presences?lectureId=${id}`
+        )
+      );
+      const presenceResults = await Promise.all(presencePromises);
+      const newPresences: Record<number, boolean> = {};
+      presenceResults.forEach((result, index) => {
+        newPresences[lectureIds[index]] = result.is_present;
+      });
+      setPresences(newPresences);
+    } catch (error) {
+      console.error("Failed to fetch presences:", error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch presence data.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handlePresenceToggle = async (lectureId: number) => {
@@ -118,9 +140,17 @@ export default function ScheduleView() {
     return time.substring(0, 5); // This will return the first 5 characters, effectively giving us HH:MM
   };
 
+  if (isLoading) {
+    return <div>Loading schedules...</div>;
+  }
+
+  if (error) {
+    return <div className="text-red-500">{error}</div>;
+  }
+
   return (
     <div className="container mx-auto py-10">
-      <h1 className="text-2xl font-bold mb-4">Your Schedule</h1>
+      <h1 className="text-2xl font-bold mb-4">Schedules List</h1>
       <Popover>
         <PopoverTrigger asChild>
           <Button
@@ -202,8 +232,8 @@ export default function ScheduleView() {
                         {formatTime(lecture.start_time)} -{" "}
                         {formatTime(lecture.end_time)}
                       </TableCell>
-                      <TableCell>{lecture.subject.name}</TableCell>
-                      <TableCell>{lecture.teacher.name}</TableCell>
+                      <TableCell>{lecture.subject_name}</TableCell>
+                      <TableCell>{lecture.teacher_name}</TableCell>
                       <TableCell>{lecture.room || "N/A"}</TableCell>
                       <TableCell className="text-right">
                         <Button
