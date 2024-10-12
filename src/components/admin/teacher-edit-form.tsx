@@ -37,7 +37,7 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 interface TeacherEditFormProps {
-  teacher: Teacher & { subjects?: number[] };
+  teacher: Teacher;
 }
 
 export function TeacherEditForm({ teacher }: TeacherEditFormProps) {
@@ -52,7 +52,7 @@ export function TeacherEditForm({ teacher }: TeacherEditFormProps) {
     defaultValues: {
       name: teacher.name,
       email: teacher.email,
-      subject_ids: teacher.subjects || [],
+      subject_ids: teacher.subjects.map(subject => subject.id),
     },
   });
 
