@@ -1,15 +1,15 @@
 import NextAuth, { NextAuthConfig } from "next-auth";
-import PostgresAdapter from "@auth/pg-adapter";
+// import PostgresAdapter from "@auth/pg-adapter";
 import GitHub from "next-auth/providers/github";
 import Google from "next-auth/providers/google";
 
-import { Pool } from "@neondatabase/serverless";
+// import { Pool } from "@neondatabase/serverless";
 export const authConfig: NextAuthConfig = {
-  adapter: PostgresAdapter(
-    new Pool({
-      connectionString: process.env.POSTGRES_URL,
-    }) as unknown as import("pg").Pool
-  ),
+  // adapter: PostgresAdapter(
+  //   new Pool({
+  //     connectionString: process.env.POSTGRES_URL,
+  //   }) as unknown as import("pg").Pool
+  // ),
   providers: [GitHub, Google],
   callbacks: {
     session({ session, user }) {
