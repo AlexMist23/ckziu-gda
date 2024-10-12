@@ -46,9 +46,6 @@ export async function GET() {
       updated_at: row.updated_at,
       subjects: row.subjects || [],
     }));
-
-    console.log("Teachers data:", teacherResponses);
-
     return NextResponse.json(teacherResponses);
   } catch (error) {
     console.error("Database query failed:", error);
