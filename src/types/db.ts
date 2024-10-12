@@ -44,6 +44,7 @@ export interface Lecture {
   end_time: string;
   subject_name: string;
   teacher_name: string;
+  room: number;
 }
 
 export interface ScheduleWithLectures extends Schedule {
