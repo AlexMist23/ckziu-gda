@@ -12,20 +12,22 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { getHelperClient } from "@/lib/fetch-helper-client";
-import { Teacher, Subject } from "@/types/types";
+import { TeacherResponse } from "@/types/api";
 import { useToast } from "@/hooks/use-toast";
 import { Mail, Book, User } from "lucide-react";
 
 export default function TeachersPage() {
-  const [teachers, setTeachers] = useState<Teacher[]>([]);
-  const [filteredTeachers, setFilteredTeachers] = useState<Teacher[]>([]);
+  const [teachers, setTeachers] = useState<TeacherResponse[]>([]);
+  const [filteredTeachers, setFilteredTeachers] = useState<TeacherResponse[]>(
+    []
+  );
   const [filterValue, setFilterValue] = useState("");
   const { toast } = useToast();
 
   useEffect(() => {
     const fetchTeachers = async () => {
       try {
-        const fetchedTeachers = await getHelperClient<Teacher[]>(
+        const fetchedTeachers = await getHelperClient<TeacherResponse[]>(
           "/api/teachers"
         );
         setTeachers(fetchedTeachers);
@@ -48,24 +50,13 @@ export default function TeachersPage() {
     const filtered = teachers.filter((teacher) => {
       const nameMatch = teacher.name.toLowerCase().includes(lowercasedFilter);
       const emailMatch = teacher.email.toLowerCase().includes(lowercasedFilter);
-      const subjectMatch = teacher.subjects.some((subjectId) => {
-        const subject = getSubjectById(subjectId);
-        return subject && subject.name.toLowerCase().includes(lowercasedFilter);
-      });
+      const subjectMatch = teacher.subjects.some((subject) =>
+        subject.name.toLowerCase().includes(lowercasedFilter)
+      );
       return nameMatch || emailMatch || subjectMatch;
     });
     setFilteredTeachers(filtered);
   }, [filterValue, teachers]);
-
-  const getSubjectById = (subjectId: number): Subject | undefined => {
-    // This is a placeholder. You should implement a proper way to get subjects,
-    // either by fetching them separately or including them in the teacher data.
-    return {
-      id: subjectId,
-      name: `Subject ${subjectId}`,
-      // Add other properties as needed
-    };
-  };
 
   return (
     <div className="container mx-auto py-10">
@@ -120,14 +111,11 @@ export default function TeachersPage() {
                   <TableCell>
                     {teacher.subjects && teacher.subjects.length > 0 ? (
                       <div className="flex flex-col space-y-1">
-                        {teacher.subjects.map((subjectId) => {
-                          const subject = getSubjectById(subjectId);
-                          return (
-                            <span key={subjectId} className="text-sm">
-                              {subject ? subject.name : `Subject ${subjectId}`}
-                            </span>
-                          );
-                        })}
+                        {teacher.subjects.map((subject) => (
+                          <span key={subject.id} className="text-sm">
+                            {subject.name}
+                          </span>
+                        ))}
                       </div>
                     ) : (
                       <span className="text-sm text-muted-foreground">
