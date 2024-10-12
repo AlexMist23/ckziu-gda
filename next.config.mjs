@@ -1,10 +1,4 @@
 /** @type {import('next').NextConfig} */
-const nextConfig = {
-  reactStrictMode: true,
-
-  logging: {
-    level: "verbose",
-  },
-};
+const nextConfig = {};
 
 export default nextConfig;
