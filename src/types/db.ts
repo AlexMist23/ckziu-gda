@@ -1,6 +1,15 @@
-export interface TableAccount {
-  id: number;
-  userId: number;
+export type User = {
+  id: string;
+  name: string | null;
+  email: string | null;
+  emailVerified: Date | null;
+  image: string | null;
+  role: string;
+};
+
+export type Account = {
+  id: string;
+  userId: string;
   type: string;
   provider: string;
   providerAccountId: string;
@@ -11,90 +20,76 @@ export interface TableAccount {
   scope: string | null;
   id_token: string | null;
   session_state: string | null;
-}
+};
 
-export interface TableBook {
-  id: number;
-  title: string;
-  author: string | null;
-  isbn: string | null;
-  publication_year: number | null;
-  subject: string | null;
-  created_at: Date | null;
-  updated_at: Date | null;
-}
-
-export interface TableDatabaseMetric {
-  id: number;
-  query_time: number;
-  row_count: number;
-  timestamp: Date | null;
-}
-
-export interface TableLecture {
-  id: number;
-  subject_id: number;
-  teacher_id: number;
-  start_time: string;
-  end_time: string;
-  room: string | null;
-}
-
-export interface TablePresence {
-  id: number;
-  user_id: number;
-  lecture_id: number;
-  is_present: boolean;
-  created_at: Date | null;
-}
-
-export interface TableScheduleLecture {
-  schedule_id: number;
-  lecture_id: number;
-}
-
-export interface TableSchedule {
-  id: number;
-  date: string;
-}
-
-export interface TableSession {
-  id: number;
+export type Session = {
+  id: string;
   sessionToken: string;
-  userId: number;
+  userId: string;
   expires: Date;
-}
+};
 
-export interface TableSubject {
-  id: number;
-  name: string;
-}
-
-export interface TableTeacherSubject {
-  teacher_id: number;
-  subject_id: number;
-}
-
-export interface TableTeacher {
-  id: number;
-  name: string;
-  email: string;
-  subject_id: number | null;
-  created_at: Date | null;
-  updated_at: Date | null;
-}
-
-export interface TableUser {
-  id: number;
-  name: string | null;
-  email: string | null;
-  emailVerified: Date | null;
-  image: string | null;
-  role: string | null;
-}
-
-export interface TableVerificationToken {
+export type VerificationToken = {
   identifier: string;
   token: string;
   expires: Date;
-}
+};
+
+export type Teacher = {
+  id: number;
+  name: string;
+  email: string;
+};
+
+export type Subject = {
+  id: number;
+  name: string;
+  description: string | null;
+};
+
+export type Schedule = {
+  id: number;
+  date: Date;
+};
+
+export type Lecture = {
+  id: number;
+  subject_id: number;
+  teacher_id: number;
+  start_time: string; // Using string for time, adjust if using a different type
+  end_time: string;
+  room: string | null;
+};
+
+export type ScheduleLecture = {
+  schedule_id: number;
+  lecture_id: number;
+};
+
+export type Presence = {
+  id: number;
+  user_id: string;
+  lecture_id: number;
+  is_present: boolean;
+};
+
+export type TeacherSubject = {
+  teacher_id: number;
+  subject_id: number;
+};
+
+export type Book = {
+  id: number;
+  title: string;
+  author: string;
+  isbn: string;
+  publication_year: number;
+  description: string | null;
+};
+
+export type DatabaseMetric = {
+  id: number;
+  timestamp: Date;
+  query_time: number;
+  row_count: number;
+};
