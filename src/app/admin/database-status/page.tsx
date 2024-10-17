@@ -47,7 +47,6 @@ export default function DatabaseStatusPage() {
       const data = await fetchHelperClient<PerformanceMetric[]>(
         "/api/admin/database-status"
       );
-      console.log("Fetched metrics:", data);
       setMetrics(data);
     } catch (error) {
       console.error("Failed to fetch database metrics:", error);
@@ -58,9 +57,6 @@ export default function DatabaseStatusPage() {
 
   useEffect(() => {
     fetchMetrics();
-    const interval = setInterval(fetchMetrics, 60000); // Refresh every minute
-
-    return () => clearInterval(interval);
   }, [fetchMetrics]);
 
   const refreshData = () => {
