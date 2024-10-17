@@ -1,12 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
-import { Schedule, Lecture } from "@/types/types";
-import {
-  ScheduleResponse,
-  LectureResponse,
-  SchedulesListResponse,
-  CreateScheduleRequest,
-} from "@/types/api";
+import { Schedule, Lecture } from "@/types/db.types";
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;

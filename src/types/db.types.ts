@@ -4,7 +4,7 @@ export type User = {
   email: string | null;
   emailVerified: Date | null;
   image: string | null;
-  role: string;
+  role: "user" | "admin";
 };
 
 export type Account = {

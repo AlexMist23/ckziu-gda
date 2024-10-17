@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import { User } from "@/types/db.types";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -21,61 +22,55 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { toast } from "@/hooks/use-toast";
-import { postHelperClient } from "@/lib/fetch-helper-client";
-import { User } from "@/types/types";
 
-const formSchema = z.object({
-  name: z.string().min(2, {
-    message: "Name must be at least 2 characters.",
-  }),
-  email: z.string().email({
-    message: "Please enter a valid email.",
-  }),
-  role: z.enum(["admin", "user"]),
+const userSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  email: z.string().email("Invalid email address"),
+  role: z.enum(["user", "admin"]),
 });
 
-interface UserFormProps {
-  onUserAdded: (user: User) => void;
-}
+type UserFormProps = {
+  user?: User;
+  onSubmit: (data: z.infer<typeof userSchema>) => Promise<void>;
+  onCancel?: () => void;
+};
 
-export function UserForm({ onUserAdded }: UserFormProps) {
-  const [isLoading, setIsLoading] = useState(false);
-
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+export function UserForm({ user, onSubmit, onCancel }: UserFormProps) {
+  const form = useForm<z.infer<typeof userSchema>>({
+    resolver: zodResolver(userSchema),
     defaultValues: {
-      name: "",
-      email: "",
-      role: "user",
+      name: user?.name || "",
+      email: user?.email || "",
+      role: user?.role || "user",
     },
   });
 
-  async function onSubmit(values: z.infer<typeof formSchema>) {
-    setIsLoading(true);
-    try {
-      const newUser = await postHelperClient<User>("/api/admin/users", values);
-      onUserAdded(newUser);
-      form.reset();
-      toast({
-        title: "Success",
-        description: "User added successfully",
+  useEffect(() => {
+    if (user) {
+      form.reset({
+        name: user?.name ?? "user",
+        email: user.email ?? "",
+        role: user.role,
       });
-    } catch (error) {
-      console.error(error);
-      toast({
-        title: "Error",
-        description: "Failed to add user",
-        variant: "destructive",
+    } else {
+      form.reset({
+        name: "",
+        email: "",
+        role: "user",
       });
-    } finally {
-      setIsLoading(false);
     }
-  }
+  }, [user, form]);
+
+  const handleSubmit = async (data: z.infer<typeof userSchema>) => {
+    await onSubmit(data);
+    if (!user) {
+      form.reset();
+    }
+  };
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
         <FormField
           control={form.control}
           name="name"
@@ -83,7 +78,7 @@ export function UserForm({ onUserAdded }: UserFormProps) {
             <FormItem>
               <FormLabel>Name</FormLabel>
               <FormControl>
-                <Input placeholder="John Doe" {...field} />
+                <Input {...field} placeholder="Enter name" />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -96,7 +91,7 @@ export function UserForm({ onUserAdded }: UserFormProps) {
             <FormItem>
               <FormLabel>Email</FormLabel>
               <FormControl>
-                <Input placeholder="johndoe@example.com" {...field} />
+                <Input {...field} type="email" placeholder="Enter email" />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -108,16 +103,14 @@ export function UserForm({ onUserAdded }: UserFormProps) {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Role</FormLabel>
-              <Select onValueChange={field.onChange} value={field.value}>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Select a role" />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem defaultChecked value="user">
-                    User
-                  </SelectItem>
+                  <SelectItem value="user">User</SelectItem>
                   <SelectItem value="admin">Admin</SelectItem>
                 </SelectContent>
               </Select>
@@ -125,9 +118,14 @@ export function UserForm({ onUserAdded }: UserFormProps) {
             </FormItem>
           )}
         />
-        <Button type="submit" disabled={isLoading}>
-          {isLoading ? "Adding..." : "Add User"}
-        </Button>
+        <div className="flex justify-end space-x-2">
+          {onCancel && (
+            <Button type="button" variant="outline" onClick={onCancel}>
+              Cancel
+            </Button>
+          )}
+          <Button type="submit">{user ? "Update User" : "Add User"}</Button>
+        </div>
       </form>
     </Form>
   );
