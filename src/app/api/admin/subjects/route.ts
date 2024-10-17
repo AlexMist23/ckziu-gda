@@ -1,13 +1,10 @@
 import { NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
+import { Subject } from "@/types/db.types";
 
 export async function GET() {
   try {
-    const { rows } = await sql`
-      SELECT id, name FROM subjects 
-      ORDER BY name ASC
-    `;
-
+    const { rows } = await sql<Subject>`SELECT * FROM subjects ORDER BY id`;
     return NextResponse.json(rows);
   } catch (error) {
     console.error("Failed to fetch subjects:", error);
@@ -21,13 +18,11 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const { name } = await request.json();
-
-    const { rows } = await sql`
+    const { rows } = await sql<Subject>`
       INSERT INTO subjects (name)
       VALUES (${name})
-      RETURNING id, name
+      RETURNING *
     `;
-
     return NextResponse.json(rows[0]);
   } catch (error) {
     console.error("Failed to add subject:", error);

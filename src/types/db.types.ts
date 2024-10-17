@@ -44,7 +44,6 @@ export type Teacher = {
 export type Subject = {
   id: number;
   name: string;
-  description: string | null;
 };
 
 export type Schedule = {
