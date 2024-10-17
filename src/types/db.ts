@@ -1,5 +1,5 @@
 export type User = {
-  id: string;
+  id: number;
   name: string | null;
   email: string | null;
   emailVerified: Date | null;
@@ -9,7 +9,7 @@ export type User = {
 
 export type Account = {
   id: string;
-  userId: string;
+  userId: number;
   type: string;
   provider: string;
   providerAccountId: string;
@@ -25,7 +25,7 @@ export type Account = {
 export type Session = {
   id: string;
   sessionToken: string;
-  userId: string;
+  userId: number;
   expires: Date;
 };
 
@@ -56,8 +56,8 @@ export type Lecture = {
   id: number;
   subject_id: number;
   teacher_id: number;
-  start_time: string; // Using string for time, adjust if using a different type
-  end_time: string;
+  start_time: Date;
+  end_time: Date;
   room: string | null;
 };
 
@@ -68,9 +68,10 @@ export type ScheduleLecture = {
 
 export type Presence = {
   id: number;
-  user_id: string;
+  user_id: number;
   lecture_id: number;
   is_present: boolean;
+  created_at: Date;
 };
 
 export type TeacherSubject = {
