@@ -8,7 +8,7 @@ export async function GET() {
       SELECT 
         id
       FROM 
-        users 
+        database_metrics 
       LIMIT 100
     `;
     const end = performance.now();
