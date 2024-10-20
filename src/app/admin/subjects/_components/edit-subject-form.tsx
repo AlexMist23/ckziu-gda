@@ -19,11 +19,11 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
   DialogFooter,
 } from "@/components/ui/dialog";
 
 const subjectSchema = z.object({
+  id: z.number(),
   name: z
     .string()
     .min(2, { message: "Subject name must be at least 2 characters." }),
@@ -31,33 +31,34 @@ const subjectSchema = z.object({
 
 type SubjectFormValues = z.infer<typeof subjectSchema>;
 
-interface SubjectFormProps {
-  onSubmit: (data: SubjectFormValues) => Promise<void>;
+interface EditSubjectFormProps {
+  subject: SubjectFormValues;
+  onSubmit: (updatedSubject: SubjectFormValues) => void;
+  onCancel: () => void;
 }
 
-export default function SubjectForm({ onSubmit }: SubjectFormProps) {
-  const [open, setOpen] = useState(false);
+export default function EditSubjectForm({
+  subject,
+  onSubmit,
+  onCancel,
+}: EditSubjectFormProps) {
+  const [open, setOpen] = useState(true);
+
   const form = useForm<SubjectFormValues>({
     resolver: zodResolver(subjectSchema),
-    defaultValues: {
-      name: "",
-    },
+    defaultValues: subject,
   });
 
-  const handleSubmit = async (values: SubjectFormValues) => {
-    await onSubmit(values);
-    form.reset();
+  function handleSubmit(values: SubjectFormValues) {
+    onSubmit(values);
     setOpen(false);
-  };
+  }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button variant="outline">Add Subject</Button>
-      </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Add New Subject</DialogTitle>
+          <DialogTitle>Edit Subject</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form
@@ -81,11 +82,14 @@ export default function SubjectForm({ onSubmit }: SubjectFormProps) {
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => setOpen(false)}
+                onClick={() => {
+                  onCancel();
+                  setOpen(false);
+                }}
               >
                 Cancel
               </Button>
-              <Button type="submit">Add Subject</Button>
+              <Button type="submit">Save changes</Button>
             </DialogFooter>
           </form>
         </Form>

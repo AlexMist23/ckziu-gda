@@ -1,27 +1,26 @@
 import { NextResponse } from "next/server";
-import { sql } from "@vercel/postgres";
-import { Subject } from "@/types/db.types";
+import { db } from "@/lib/kysely";
 
 export async function PUT(
   request: Request,
   { params }: { params: { id: string } }
 ) {
+  const id = parseInt(params.id, 10);
+  const { name } = await request.json();
+
   try {
-    const { name } = await request.json();
-    const { rows } = await sql<Subject>`
-      UPDATE subjects
-      SET name = ${name}
-      WHERE id = ${params.id}
-      RETURNING *
-    `;
-    if (rows.length === 0) {
-      return NextResponse.json({ error: "Subject not found" }, { status: 404 });
-    }
-    return NextResponse.json(rows[0]);
+    const updatedSubject = await db
+      .updateTable("subjects")
+      .set({ name })
+      .where("id", "=", id)
+      .returning(["id", "name"])
+      .executeTakeFirstOrThrow();
+
+    return NextResponse.json(updatedSubject);
   } catch (error) {
-    console.error("Failed to update subject:", error);
+    console.error("Error updating subject:", error);
     return NextResponse.json(
-      { error: "Failed to update subject" },
+      { error: "Internal Server Error" },
       { status: 500 }
     );
   }
@@ -31,19 +30,16 @@ export async function DELETE(
   request: Request,
   { params }: { params: { id: string } }
 ) {
+  const id = parseInt(params.id, 10);
+
   try {
-    const { rowCount } = await sql`
-      DELETE FROM subjects
-      WHERE id = ${params.id}
-    `;
-    if (rowCount === 0) {
-      return NextResponse.json({ error: "Subject not found" }, { status: 404 });
-    }
+    await db.deleteFrom("subjects").where("id", "=", id).execute();
+
     return NextResponse.json({ message: "Subject deleted successfully" });
   } catch (error) {
-    console.error("Failed to delete subject:", error);
+    console.error("Error deleting subject:", error);
     return NextResponse.json(
-      { error: "Failed to delete subject" },
+      { error: "Internal Server Error" },
       { status: 500 }
     );
   }

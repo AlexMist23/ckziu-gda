@@ -1,33 +1,73 @@
 import { NextResponse } from "next/server";
-import { sql } from "@vercel/postgres";
-import { Subject } from "@/types/db.types";
+import { db } from "@/lib/kysely";
+import { sql } from "kysely";
 
-export async function GET() {
-  try {
-    const { rows } = await sql<Subject>`SELECT * FROM subjects ORDER BY id`;
-    return NextResponse.json(rows);
-  } catch (error) {
-    console.error("Failed to fetch subjects:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch subjects" },
-      { status: 500 }
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const page = parseInt(searchParams.get("page") || "1", 10);
+  const pageSize = parseInt(searchParams.get("pageSize") || "10", 10);
+  const sortBy = searchParams.get("sortBy") || "name";
+  const sortOrder = searchParams.get("sortOrder") || "asc";
+  const search = searchParams.get("search");
+
+  let query = db.selectFrom("subjects").selectAll();
+
+  if (search) {
+    query = query.where("name", "ilike", `%${search}%`);
+  }
+
+  if (["name", "id"].includes(sortBy)) {
+    query = query.orderBy(
+      sortBy as "name" | "id",
+      sortOrder === "desc" ? "desc" : "asc"
     );
   }
+
+  const totalCountQuery = db
+    .selectFrom("subjects")
+    .select(sql<number>`count(*)`.as("count"));
+
+  if (search) {
+    totalCountQuery.where("name", "ilike", `%${search}%`);
+  }
+
+  const [subjects, totalCountResult] = await Promise.all([
+    query
+      .limit(pageSize)
+      .offset((page - 1) * pageSize)
+      .execute(),
+    totalCountQuery.executeTakeFirst(),
+  ]);
+
+  const totalCount = totalCountResult?.count || 0;
+
+  return NextResponse.json({
+    subjects,
+    pagination: {
+      currentPage: page,
+      pageSize,
+      totalCount,
+      totalPages: Math.ceil(totalCount / pageSize),
+    },
+  });
 }
 
 export async function POST(request: Request) {
+  const body = await request.json();
+  const { name } = body;
+
   try {
-    const { name } = await request.json();
-    const { rows } = await sql<Subject>`
-      INSERT INTO subjects (name)
-      VALUES (${name})
-      RETURNING *
-    `;
-    return NextResponse.json(rows[0]);
+    const newSubject = await db
+      .insertInto("subjects")
+      .values({ name })
+      .returning(["id", "name"])
+      .executeTakeFirstOrThrow();
+
+    return NextResponse.json(newSubject, { status: 201 });
   } catch (error) {
-    console.error("Failed to add subject:", error);
+    console.error("Error creating subject:", error);
     return NextResponse.json(
-      { error: "Failed to add subject" },
+      { error: "Internal Server Error" },
       { status: 500 }
     );
   }
