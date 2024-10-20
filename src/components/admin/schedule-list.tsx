@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Schedule } from "@/types/types";
+import { Schedule } from "@/types/app.types";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { format } from "date-fns";

@@ -19,7 +19,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "@/hooks/use-toast";
 import { postHelperClient, getHelperClient } from "@/lib/fetch-helper-client";
-import { Teacher, Subject } from "@/types/types";
+import { Teacher, Subject } from "@/types/app.types";
 
 const formSchema = z.object({
   name: z.string().min(2, {

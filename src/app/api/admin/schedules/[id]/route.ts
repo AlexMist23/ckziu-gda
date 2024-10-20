@@ -1,67 +1,39 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
-import { Schedule, Lecture } from "@/types/types";
-import { ScheduleResponse, UpdateScheduleRequest } from "@/types/api";
+import { Schedule, Lecture } from "@/types/db.types";
 
 export async function GET(
-  request: NextRequest,
+  request: Request,
   { params }: { params: { id: string } }
 ) {
   try {
-    const scheduleId = parseInt(params.id, 10);
-    if (isNaN(scheduleId)) {
-      return NextResponse.json(
-        { error: "Invalid schedule ID" },
-        { status: 400 }
-      );
-    }
-
-    const {
-      rows: [schedule],
-    } = await sql<Schedule>`
-      SELECT id, date
-      FROM schedules
-      WHERE id = ${scheduleId}
+    const id = Number(params.id);
+    const { rows } = await sql<Schedule & { lectures: Lecture[] }>`
+      SELECT s.*, json_agg(
+        json_build_object(
+          'id', l.id,
+          'subject_id', l.subject_id,
+          'teacher_id', l.teacher_id,
+          'start_time', l.start_time,
+          'end_time', l.end_time,
+          'room', l.room
+        )
+      ) as lectures
+      FROM schedules s
+      LEFT JOIN schedule_lectures sl ON s.id = sl.schedule_id
+      LEFT JOIN lectures l ON sl.lecture_id = l.id
+      WHERE s.id = ${id}
+      GROUP BY s.id
     `;
 
-    if (!schedule) {
+    if (rows.length === 0) {
       return NextResponse.json(
         { error: "Schedule not found" },
         { status: 404 }
       );
     }
 
-    const { rows: lectures } = await sql<
-      Lecture & { subject_name: string; teacher_name: string }
-    >`
-      SELECT l.*, s.name as subject_name, t.name as teacher_name
-      FROM lectures l
-      JOIN schedule_lectures sl ON l.id = sl.lecture_id
-      JOIN subjects s ON l.subject_id = s.id
-      JOIN teachers t ON l.teacher_id = t.id
-      WHERE sl.schedule_id = ${scheduleId}
-      ORDER BY l.start_time ASC
-    `;
-
-    const result: ScheduleResponse = {
-      ...schedule,
-      lectures: lectures.map((lecture) => ({
-        id: lecture.id,
-        subject_id: lecture.subject_id,
-        teacher_id: lecture.teacher_id,
-        start_time: lecture.start_time,
-        end_time: lecture.end_time,
-        room: lecture.room,
-        subject: { id: lecture.subject_id, name: lecture.subject_name },
-        teacher: {
-          id: lecture.teacher_id,
-          name: lecture.teacher_name,
-          email: "",
-        }, // Email is not fetched in this query
-      })),
-    };
-
-    return NextResponse.json(result);
+    return NextResponse.json(rows[0]);
   } catch (error) {
     console.error("Failed to fetch schedule:", error);
     return NextResponse.json(
@@ -72,89 +44,81 @@ export async function GET(
 }
 
 export async function PUT(
-  request: NextRequest,
+  request: Request,
   { params }: { params: { id: string } }
 ) {
   try {
-    const scheduleId = parseInt(params.id, 10);
-    if (isNaN(scheduleId)) {
-      return NextResponse.json(
-        { error: "Invalid schedule ID" },
-        { status: 400 }
-      );
-    }
+    const id = Number(params.id);
+    const { date, lectures } = await request.json();
 
-    const { date, lectures } = (await request.json()) as UpdateScheduleRequest;
+    // Start transaction
+    await sql`BEGIN`;
 
-    // Update schedule date
-    await sql`
-      UPDATE schedules
-      SET date = ${date}
-      WHERE id = ${scheduleId}
-    `;
-
-    // Delete existing lecture associations
-    await sql`
-      DELETE FROM schedule_lectures
-      WHERE schedule_id = ${scheduleId}
-    `;
-
-    // Insert new lectures and create associations
-    for (const lecture of lectures) {
+    try {
+      // Update schedule
       const {
-        rows: [newLecture],
-      } = await sql<Lecture>`
-        INSERT INTO lectures (subject_id, teacher_id, start_time, end_time, room)
-        VALUES (${lecture.subject_id}, ${lecture.teacher_id}, ${lecture.start_time}, ${lecture.end_time}, ${lecture.room})
-        RETURNING id, subject_id, teacher_id, start_time, end_time, room
+        rows: [updatedSchedule],
+      } = await sql<Schedule>`
+        UPDATE schedules
+        SET date = ${date}
+        WHERE id = ${id}
+        RETURNING *
       `;
 
-      await sql`
-        INSERT INTO schedule_lectures (schedule_id, lecture_id)
-        VALUES (${scheduleId}, ${newLecture.id})
-      `;
+      if (!updatedSchedule) {
+        throw new Error("Schedule not found");
+      }
+
+      // Delete existing schedule_lectures associations
+      await sql`DELETE FROM schedule_lectures WHERE schedule_id = ${id}`;
+
+      // Update or insert lectures and create new schedule_lectures associations
+      for (const lecture of lectures) {
+        let lectureId: number;
+
+        if (lecture.id) {
+          // Update existing lecture
+          const {
+            rows: [updatedLecture],
+          } = await sql<Lecture>`
+            UPDATE lectures
+            SET subject_id = ${lecture.subject_id},
+                teacher_id = ${lecture.teacher_id},
+                start_time = ${lecture.start_time},
+                end_time = ${lecture.end_time},
+                room = ${lecture.room}
+            WHERE id = ${lecture.id}
+            RETURNING id
+          `;
+          lectureId = updatedLecture.id;
+        } else {
+          // Insert new lecture
+          const {
+            rows: [newLecture],
+          } = await sql<Lecture>`
+            INSERT INTO lectures (subject_id, teacher_id, start_time, end_time, room)
+            VALUES (${lecture.subject_id}, ${lecture.teacher_id}, ${lecture.start_time}, ${lecture.end_time}, ${lecture.room})
+            RETURNING id
+          `;
+          lectureId = newLecture.id;
+        }
+
+        // Create new schedule_lectures association
+        await sql`
+          INSERT INTO schedule_lectures (schedule_id, lecture_id)
+          VALUES (${id}, ${lectureId})
+        `;
+      }
+
+      // Commit transaction
+      await sql`COMMIT`;
+
+      return NextResponse.json(updatedSchedule);
+    } catch (error) {
+      // Rollback transaction on error
+      await sql`ROLLBACK`;
+      throw error;
     }
-
-    // Fetch updated schedule
-    const {
-      rows: [updatedSchedule],
-    } = await sql<Schedule>`
-      SELECT id, date
-      FROM schedules
-      WHERE id = ${scheduleId}
-    `;
-
-    const { rows: updatedLectures } = await sql<
-      Lecture & { subject_name: string; teacher_name: string }
-    >`
-      SELECT l.*, s.name as subject_name, t.name as teacher_name
-      FROM lectures l
-      JOIN schedule_lectures sl ON l.id = sl.lecture_id
-      JOIN subjects s ON l.subject_id = s.id
-      JOIN teachers t ON l.teacher_id = t.id
-      WHERE sl.schedule_id = ${scheduleId}
-      ORDER BY l.start_time ASC
-    `;
-
-    const result: ScheduleResponse = {
-      ...updatedSchedule,
-      lectures: updatedLectures.map((lecture) => ({
-        id: lecture.id,
-        subject_id: lecture.subject_id,
-        teacher_id: lecture.teacher_id,
-        start_time: lecture.start_time,
-        end_time: lecture.end_time,
-        room: lecture.room,
-        subject: { id: lecture.subject_id, name: lecture.subject_name },
-        teacher: {
-          id: lecture.teacher_id,
-          name: lecture.teacher_name,
-          email: "",
-        }, // Email is not fetched in this query
-      })),
-    };
-
-    return NextResponse.json(result);
   } catch (error) {
     console.error("Failed to update schedule:", error);
     return NextResponse.json(
@@ -165,38 +129,35 @@ export async function PUT(
 }
 
 export async function DELETE(
-  request: NextRequest,
+  request: Request,
   { params }: { params: { id: string } }
 ) {
   try {
-    const scheduleId = parseInt(params.id, 10);
-    if (isNaN(scheduleId)) {
-      return NextResponse.json(
-        { error: "Invalid schedule ID" },
-        { status: 400 }
-      );
+    const id = Number(params.id);
+
+    // Start transaction
+    await sql`BEGIN`;
+
+    try {
+      // Delete schedule_lectures associations
+      await sql`DELETE FROM schedule_lectures WHERE schedule_id = ${id}`;
+
+      // Delete schedule
+      const { rowCount } = await sql`DELETE FROM schedules WHERE id = ${id}`;
+
+      if (rowCount === 0) {
+        throw new Error("Schedule not found");
+      }
+
+      // Commit transaction
+      await sql`COMMIT`;
+
+      return NextResponse.json({ message: "Schedule deleted successfully" });
+    } catch (error) {
+      // Rollback transaction on error
+      await sql`ROLLBACK`;
+      throw error;
     }
-
-    // Delete lecture associations
-    await sql`
-      DELETE FROM schedule_lectures
-      WHERE schedule_id = ${scheduleId}
-    `;
-
-    // Delete the schedule
-    const { rowCount } = await sql`
-      DELETE FROM schedules
-      WHERE id = ${scheduleId}
-    `;
-
-    if (rowCount === 0) {
-      return NextResponse.json(
-        { error: "Schedule not found" },
-        { status: 404 }
-      );
-    }
-
-    return NextResponse.json({ message: "Schedule deleted successfully" });
   } catch (error) {
     console.error("Failed to delete schedule:", error);
     return NextResponse.json(

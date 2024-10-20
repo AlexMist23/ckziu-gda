@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
-import { Lecture } from "@/types/types";
+import { Lecture } from "@/types/app.types";
 import {
   LectureResponse,
   LecturesListResponse,

@@ -19,7 +19,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Schedule, Subject, Teacher } from "@/types/types";
+import { Schedule, Subject, Teacher } from "@/types/app.types";
 import { useToast } from "@/hooks/use-toast";
 
 const scheduleSchema = z.object({

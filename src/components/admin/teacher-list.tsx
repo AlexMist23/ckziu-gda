@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/pagination";
 import { toast } from "@/hooks/use-toast";
 import { getHelperClient, deleteHelperClient } from "@/lib/fetch-helper-client";
-import { Teacher, Subject } from "@/types/types";
+import { Teacher, Subject } from "@/types/app.types";
 import { TeacherForm } from "./teacher-form";
 
 interface TeacherListProps {

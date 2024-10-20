@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/select";
 import { toast } from "@/hooks/use-toast";
 import { getHelperClient, putHelperClient } from "@/lib/fetch-helper-client";
-import { Schedule, Subject, Teacher } from "@/types/types";
+import { Schedule, Subject, Teacher } from "@/types/app.types";
 import {
   Table,
   TableBody,

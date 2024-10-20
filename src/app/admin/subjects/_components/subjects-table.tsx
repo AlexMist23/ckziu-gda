@@ -18,7 +18,6 @@ import EditSubjectForm from "./edit-subject-form";
 import {
   Pagination,
   PaginationContent,
-  PaginationEllipsis,
   PaginationItem,
   PaginationLink,
   PaginationNext,
