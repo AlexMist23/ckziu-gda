@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
 import { auth } from "@/lib/auth";
-import { TeacherWithSubjects } from "@/types/types";
+import { TeacherWithSubjects } from "@/types/app.types";
 import { TeacherResponse } from "@/types/api";
 
 export async function GET() {
