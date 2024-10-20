@@ -88,20 +88,12 @@ export function TeachersTable({ initialTeachers }: TeachersTableProps) {
       sortOrder,
       ...(search && { search }),
     });
-    updateURL(Object.fromEntries(params));
     const response = await fetch(`/api/admin/teachers?${params}`);
     if (!response.ok) throw new Error("Failed to fetch teachers");
     const data = await response.json();
     setTeachers(data.teachers);
     setPagination(data.pagination);
-  }, [
-    pagination.currentPage,
-    pagination.pageSize,
-    sortBy,
-    sortOrder,
-    search,
-    updateURL,
-  ]);
+  }, [pagination.currentPage, pagination.pageSize, sortBy, sortOrder, search]);
 
   useEffect(() => {
     fetchTeachers();
@@ -111,10 +103,17 @@ export function TeachersTable({ initialTeachers }: TeachersTableProps) {
     debounce((value: string) => {
       setSearch(value);
       setPagination((prev) => ({ ...prev, currentPage: 1 }));
+      updateURL({ search: value, page: "1" });
       fetchTeachers();
     }, 300),
-    [fetchTeachers]
+    [updateURL, fetchTeachers]
   );
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setSearch(value);
+    debouncedSearch(value);
+  };
 
   const handleAddTeacher = async (newTeacher: Omit<Teacher, "id">) => {
     try {
@@ -182,11 +181,13 @@ export function TeachersTable({ initialTeachers }: TeachersTableProps) {
     setSortBy(column);
     setSortOrder(newSortOrder);
     setPagination((prev) => ({ ...prev, currentPage: 1 }));
+    updateURL({ sortBy: column, sortOrder: newSortOrder, page: "1" });
     fetchTeachers();
   };
 
   const handlePageChange = (page: number) => {
     setPagination((prev) => ({ ...prev, currentPage: page }));
+    updateURL({ page: page.toString() });
     fetchTeachers();
   };
 
@@ -196,7 +197,7 @@ export function TeachersTable({ initialTeachers }: TeachersTableProps) {
         <Input
           placeholder="Search teachers..."
           value={search}
-          onChange={(e) => debouncedSearch(e.target.value)}
+          onChange={handleSearchChange}
           className="max-w-sm"
         />
         <TeacherForm onSubmit={handleAddTeacher} />

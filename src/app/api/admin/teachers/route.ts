@@ -5,11 +5,11 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const page = parseInt(searchParams.get("page") || "1", 10);
   const pageSize = parseInt(searchParams.get("pageSize") || "10", 10);
-  const sortBy = searchParams.get("sortBy") || "name";
-  const sortOrder = searchParams.get("sortOrder") || "asc";
+  const sortBy = (searchParams.get("sortBy") as "name" | "email") || "name";
+  const sortOrder = (searchParams.get("sortOrder") as "asc" | "desc") || "asc";
   const search = searchParams.get("search");
 
-  let query = db
+  let baseQuery = db
     .selectFrom("teachers")
     .leftJoin("teacher_subjects", "teachers.id", "teacher_subjects.teacher_id")
     .leftJoin("subjects", "teacher_subjects.subject_id", "subjects.id")
@@ -22,7 +22,7 @@ export async function GET(request: Request) {
     .groupBy("teachers.id");
 
   if (search) {
-    query = query.where((eb) =>
+    baseQuery = baseQuery.where((eb) =>
       eb.or([
         eb("teachers.name", "ilike", `%${search}%`),
         eb("teachers.email", "ilike", `%${search}%`),
@@ -31,40 +31,21 @@ export async function GET(request: Request) {
     );
   }
 
-  if (["name", "email"].includes(sortBy)) {
-    query = query.orderBy(
-      `teachers.${sortBy}` as any,
+  if (sortBy === "name" || sortBy === "email") {
+    baseQuery = baseQuery.orderBy(
+      sortBy === "name" ? "teachers.name" : "teachers.email",
       sortOrder === "desc" ? "desc" : "asc"
     );
   }
 
-  const totalCountQuery = db
-    .selectFrom("teachers")
-    .select(sql<number>`count(DISTINCT teachers.id)`.as("count"));
+  const countQuery = baseQuery.select(
+    sql<number>`count(DISTINCT teachers.id)`.as("count")
+  );
+  const dataQuery = baseQuery.limit(pageSize).offset((page - 1) * pageSize);
 
-  if (search) {
-    totalCountQuery
-      .leftJoin(
-        "teacher_subjects",
-        "teachers.id",
-        "teacher_subjects.teacher_id"
-      )
-      .leftJoin("subjects", "teacher_subjects.subject_id", "subjects.id")
-      .where((eb) =>
-        eb.or([
-          eb("teachers.name", "ilike", `%${search}%`),
-          eb("teachers.email", "ilike", `%${search}%`),
-          eb("subjects.name", "ilike", `%${search}%`),
-        ])
-      );
-  }
-
-  const [teachers, totalCountResult] = await Promise.all([
-    query
-      .limit(pageSize)
-      .offset((page - 1) * pageSize)
-      .execute(),
-    totalCountQuery.executeTakeFirst(),
+  const [totalCountResult, teachers] = await Promise.all([
+    countQuery.executeTakeFirst(),
+    dataQuery.execute(),
   ]);
 
   const totalCount = totalCountResult?.count || 0;
