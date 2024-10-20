@@ -37,7 +37,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { getHelperClient, postHelperClient } from "@/lib/fetch-helper-client";
-import { ScheduleWithLectures } from "@/types/types";
+import { ScheduleWithLectures } from "@/types/app.types";
 import { useToast } from "@/hooks/use-toast";
 
 export default function ScheduleView() {
