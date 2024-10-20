@@ -65,7 +65,7 @@ export const adminNavLinks = [
   },
   {
     icon: Database,
-    label: "Database",
+    label: "Database Schema",
     href: "/admin/database",
   },
   {
