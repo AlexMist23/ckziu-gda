@@ -1,110 +1,97 @@
-"use client";
+import { Suspense } from "react";
+import UsersTable from "./_components/users-table";
+import { createKysely } from "@vercel/postgres-kysely";
 
-import { useState, useEffect } from "react";
-import { User } from "@/types/db.types";
-import { useToast } from "@/hooks/use-toast";
-import {
-  getHelperClient,
-  postHelperClient,
-  putHelperClient,
-  deleteHelperClient,
-} from "@/lib/fetch-helper-client";
-import { UserForm } from "./_components/user-form";
-import { UserList } from "./_components/user-list";
+type SortableColumn = "name" | "email" | "role";
 
-export default function AdminUsersPage() {
-  const [users, setUsers] = useState<User[]>([]);
-  const [editingUser, setEditingUser] = useState<User | null>(null);
-  const { toast } = useToast();
-
-  useEffect(() => {
-    fetchUsers();
-  }, []);
-
-  const fetchUsers = async () => {
-    try {
-      const data = await getHelperClient<User[]>("/api/admin/users");
-      setUsers(data);
-    } catch (error) {
-      console.error(error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch users",
-        variant: "destructive",
-      });
-    }
+interface Database {
+  users: {
+    id: number;
+    name: string;
+    email: string;
+    role: string;
+    image: string | null;
   };
+}
 
-  const handleAddUser = async (data: Omit<User, "id">) => {
-    try {
-      const newUser = await postHelperClient<User>("/api/admin/users", data);
-      setUsers([...users, newUser]);
-      toast({ title: "Success", description: "User added successfully" });
-    } catch (error) {
-      console.error(error);
-      toast({
-        title: "Error",
-        description: "Failed to add user",
-        variant: "destructive",
-      });
-    }
-  };
+const db = createKysely<Database>();
 
-  const handleEditUser = async (data: User) => {
-    if (!editingUser) return;
-    try {
-      const updatedUser = await putHelperClient<User>(
-        `/api/admin/users/${editingUser.id}`,
-        data
-      );
-      setUsers(users.map((u) => (u.id === updatedUser.id ? updatedUser : u)));
-      setEditingUser(null);
-      toast({ title: "Success", description: "User updated successfully" });
-    } catch (error) {
-      console.error(error);
-      toast({
-        title: "Error",
-        description: "Failed to update user",
-        variant: "destructive",
-      });
-    }
-  };
+async function getInitialUsers(searchParams: {
+  [key: string]: string | string[] | undefined;
+}) {
+  const page = parseInt((searchParams.page as string) || "1", 10);
+  const pageSize = parseInt((searchParams.pageSize as string) || "10", 10);
+  const sortBy = (searchParams.sortBy as SortableColumn) || "name";
+  const sortOrder = (searchParams.sortOrder as string) || "asc";
+  const role = searchParams.role as string;
+  const search = searchParams.search as string;
 
-  const handleDeleteUser = async (id: number) => {
-    try {
-      await deleteHelperClient(`/api/admin/users/${id}`);
-      setUsers(users.filter((u) => u.id !== id));
-      toast({ title: "Success", description: "User deleted successfully" });
-    } catch (error) {
-      console.error(error);
-      toast({
-        title: "Error",
-        description: "Failed to delete user",
-        variant: "destructive",
-      });
-    }
+  let query = db
+    .selectFrom("users")
+    .selectAll()
+    .limit(pageSize)
+    .offset((page - 1) * pageSize);
+
+  if (role && role !== "all") {
+    query = query.where("role", "=", role);
+  }
+
+  if (search) {
+    query = query.where((eb) =>
+      eb.or([
+        eb("name", "ilike", `%${search}%`),
+        eb("email", "ilike", `%${search}%`),
+      ])
+    );
+  }
+
+  if (["name", "email", "role"].includes(sortBy)) {
+    query = query.orderBy(sortBy, sortOrder === "desc" ? "desc" : "asc");
+  }
+
+  const users = await query.execute();
+
+  const totalCountQuery = db
+    .selectFrom("users")
+    .select(db.fn.count<number>("id").as("count"));
+  if (role && role !== "all") {
+    totalCountQuery.where("role", "=", role);
+  }
+  if (search) {
+    totalCountQuery.where((eb) =>
+      eb.or([
+        eb("name", "ilike", `%${search}%`),
+        eb("email", "ilike", `%${search}%`),
+      ])
+    );
+  }
+  const totalCountResult = await totalCountQuery.executeTakeFirst();
+  const totalCount = totalCountResult?.count || 0;
+
+  return {
+    users,
+    pagination: {
+      currentPage: page,
+      pageSize,
+      totalCount,
+      totalPages: Math.ceil(totalCount / pageSize),
+    },
   };
+}
+
+export default async function UsersPage({
+  searchParams,
+}: {
+  searchParams: { [key: string]: string | string[] | undefined };
+}) {
+  const { users, pagination } = await getInitialUsers(searchParams);
 
   return (
-    <div className="container mx-auto py-10">
-      <h1 className="text-2xl font-bold mb-5 text-foreground">Manage Users</h1>
-
-      <div className="mb-8">
-        <h2 className="text-xl font-semibold mb-3 text-foreground">
-          {editingUser ? "Edit User" : "Add New User"}
-        </h2>
-        <UserForm
-          user={editingUser || undefined}
-          onSubmit={editingUser ? handleEditUser : handleAddUser}
-          onCancel={editingUser ? () => setEditingUser(null) : undefined}
-        />
-      </div>
-
-      <UserList
-        users={users}
-        onEdit={setEditingUser}
-        onDelete={handleDeleteUser}
-      />
+    <div className="container mx-auto p-4">
+      <h1 className="text-2xl font-bold mb-4 text-primary">Admin Users</h1>
+      <Suspense fallback={<div>Loading...</div>}>
+        <UsersTable initialUsers={users} initialPagination={pagination} />
+      </Suspense>
     </div>
   );
 }

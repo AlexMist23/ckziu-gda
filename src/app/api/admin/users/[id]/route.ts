@@ -1,27 +1,26 @@
 import { NextResponse } from "next/server";
-import { sql } from "@vercel/postgres";
-import { User } from "@/types/db.types";
+import { db } from "@/lib/kysely";
 
 export async function PUT(
   request: Request,
   { params }: { params: { id: string } }
 ) {
+  const id = parseInt(params.id, 10);
+  const { name, role } = await request.json();
+
   try {
-    const { name, email, role } = await request.json();
-    const { rows } = await sql<User>`
-      UPDATE users
-      SET name = ${name}, email = ${email}, role = ${role}
-      WHERE id = ${params.id}
-      RETURNING *
-    `;
-    if (rows.length === 0) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
-    }
-    return NextResponse.json(rows[0]);
+    const updatedUser = await db
+      .updateTable("users")
+      .set({ name, role })
+      .where("id", "=", id)
+      .returning(["id", "name", "email", "role", "image"])
+      .executeTakeFirstOrThrow();
+
+    return NextResponse.json(updatedUser);
   } catch (error) {
-    console.error("Failed to update user:", error);
+    console.error("Error updating user:", error);
     return NextResponse.json(
-      { error: "Failed to update user" },
+      { error: "Internal Server Error" },
       { status: 500 }
     );
   }
@@ -31,19 +30,16 @@ export async function DELETE(
   request: Request,
   { params }: { params: { id: string } }
 ) {
+  const id = parseInt(params.id, 10);
+
   try {
-    const { rowCount } = await sql`
-      DELETE FROM users
-      WHERE id = ${params.id}
-    `;
-    if (rowCount === 0) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
-    }
+    await db.deleteFrom("users").where("id", "=", id).execute();
+
     return NextResponse.json({ message: "User deleted successfully" });
   } catch (error) {
-    console.error("Failed to delete user:", error);
+    console.error("Error deleting user:", error);
     return NextResponse.json(
-      { error: "Failed to delete user" },
+      { error: "Internal Server Error" },
       { status: 500 }
     );
   }
