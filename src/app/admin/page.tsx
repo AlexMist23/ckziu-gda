@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { adminNavLinks } from "@/data/nav-links";
+import { adminNavLinks } from "@/data/sidebar-links";
 import Link from "next/link";
 
 export default function AdminDashboard() {

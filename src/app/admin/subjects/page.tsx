@@ -1,5 +1,6 @@
 import { Subject } from "@/lib/kysely";
 import SubjectsTable from "./_components/subjects-table";
+import AddSubjectButton from "./_components/add-subject-button";
 
 async function getSubjects(): Promise<Subject[]> {
   const data = await fetch(
@@ -9,6 +10,7 @@ async function getSubjects(): Promise<Subject[]> {
         "Content-Type": "application/json",
       },
       method: "GET",
+      cache: "no-store",
     }
   );
   if (!data.ok) {
@@ -22,6 +24,7 @@ export default async function SubjectsPage() {
   return (
     <div className="container mx-auto py-10">
       <h1 className="text-2xl font-bold mb-5">Subjects Management</h1>
+      <AddSubjectButton />
       <SubjectsTable subjects={subjects} />
     </div>
   );

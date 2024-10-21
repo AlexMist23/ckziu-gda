@@ -1,4 +1,3 @@
-import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -9,6 +8,8 @@ import {
 } from "@/components/ui/table";
 
 import { Subject } from "@/lib/kysely";
+import EditSubjectButton from "./edit-subject-button";
+import DeleteSubjectButton from "./delete-subject-button";
 
 interface Params {
   subjects: Subject[];
@@ -26,15 +27,11 @@ export default function SubjectsTable({ subjects }: Params) {
       <TableBody>
         {subjects &&
           subjects.map((subject) => (
-            <TableRow key={+subject.id}>
+            <TableRow key={subject.id}>
               <TableCell>{subject.name}</TableCell>
               <TableCell>
-                <Button size={"sm"} variant={"outline"}>
-                  Edit
-                </Button>
-                <Button size={"sm"} variant={"destructive"}>
-                  Delete
-                </Button>
+                <EditSubjectButton subject={subject} />
+                <DeleteSubjectButton subject={subject} />
               </TableCell>
             </TableRow>
           ))}
