@@ -2,6 +2,8 @@ import { Subject } from "@/lib/kysely";
 import SubjectsTable from "./_components/table";
 import AddSubjectButton from "./_components/add-button";
 import PaginationControls from "@/components/pagination-controls";
+import { SubjectFilterSortForm } from "./_components/filter-sort-form";
+import { Card } from "@/components/ui/card";
 
 interface SubjectsResponse {
   subjects: Subject[];
@@ -12,13 +14,22 @@ interface SubjectsResponse {
     itemsPerPage: number;
   };
 }
-
-async function getSubjects(
-  page: number = 1,
-  limit: number = 10
-): Promise<SubjectsResponse> {
+interface getSubjectParams {
+  limit?: number;
+  name?: string;
+  sortBy?: string;
+  order?: string;
+  page?: string;
+}
+async function getSubjects({
+  limit = 10,
+  name = "",
+  page = "1",
+  sortBy = "name",
+  order = "asc",
+}: getSubjectParams): Promise<SubjectsResponse> {
   const data = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/api/admin/subjects?page=${page}&limit=${limit}`,
+    `${process.env.NEXT_PUBLIC_API_URL}/api/admin/subjects?name=${name}&sortBy=${sortBy}&order=${order}&page=${page}&limit=${limit}`,
     {
       headers: {
         "Content-Type": "application/json",
@@ -36,15 +47,24 @@ async function getSubjects(
 export default async function SubjectsPage({
   searchParams,
 }: {
-  searchParams: { page?: string };
+  searchParams: {
+    name?: string;
+    sortBy?: string;
+    order?: string;
+    page?: string;
+  };
 }) {
-  const page = parseInt(searchParams.page || "1", 10);
-  const { subjects, pagination } = await getSubjects(page);
+  // const { page, name, sortBy, order } = searchParams;
+  const { subjects, pagination } = await getSubjects({ ...searchParams });
   return (
     <div className="container mx-auto py-10">
       <h1 className="text-2xl font-bold mb-5">Subjects Management</h1>
       <AddSubjectButton />
-      <SubjectsTable subjects={subjects} />
+      <SubjectFilterSortForm />
+      <Card className="p-2">
+        <SubjectsTable subjects={subjects} />
+      </Card>
+
       <PaginationControls
         className="mt-2"
         currentPage={pagination.currentPage}

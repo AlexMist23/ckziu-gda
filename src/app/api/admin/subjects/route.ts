@@ -1,17 +1,35 @@
-import { db } from "@/lib/kysely";
+import { db, sql } from "@/lib/kysely";
 import { NextResponse, NextRequest } from "next/server";
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
+
+  // pagination params
   const page = parseInt(searchParams.get("page") || "1", 10);
   const limit = parseInt(searchParams.get("limit") || "10", 10);
   const offset = (page - 1) * limit;
 
-  try {
-    const subjectsQuery = db.selectFrom("subjects");
+  // filtering params
+  const name = searchParams.get("name") || "";
 
+  // sorting params
+  const sortBy = searchParams.get("sortBy") || "name";
+  const order = (searchParams.get("order") || "asc").toLowerCase();
+
+  try {
+    // get filtered query
+    const subjectsQuery = db
+      .selectFrom("subjects")
+      .where(sql`LOWER(name)`, "like", `%${name.toLowerCase()}%`);
+
+    // limit result and get pagination
     const [subjects, totalCountResult] = await Promise.all([
-      subjectsQuery.selectAll().limit(limit).offset(offset).execute(),
+      subjectsQuery
+        .selectAll()
+        .orderBy(sortBy as "name" | "id", order as "asc" | "desc") // filter && order
+        .limit(limit)
+        .offset(offset)
+        .execute(),
       subjectsQuery.select(db.fn.count("id").as("count")).executeTakeFirst(),
     ]);
 

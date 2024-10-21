@@ -29,7 +29,7 @@ export default function SubjectsTable({ subjects }: Params) {
           subjects.map((subject) => (
             <TableRow key={subject.id}>
               <TableCell>{subject.name}</TableCell>
-              <TableCell>
+              <TableCell className="w-24">
                 <EditSubjectButton subject={subject} />
                 <DeleteSubjectButton subject={subject} />
               </TableCell>
