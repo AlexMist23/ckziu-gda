@@ -1,4 +1,10 @@
-import { Generated, ColumnType } from "kysely";
+import {
+  Generated,
+  ColumnType,
+  Insertable,
+  Selectable,
+  Updateable,
+} from "kysely";
 import { createKysely } from "@vercel/postgres-kysely";
 
 interface AccountsTable {
@@ -109,3 +115,7 @@ export interface Database {
 
 export const db = createKysely<Database>();
 export { sql } from "kysely";
+
+export type Subject = Selectable<SubjectsTable>;
+export type NewSubject = Insertable<SubjectsTable>;
+export type PersonSubject = Updateable<SubjectsTable>;
