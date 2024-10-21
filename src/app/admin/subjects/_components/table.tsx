@@ -8,8 +8,8 @@ import {
 } from "@/components/ui/table";
 
 import { Subject } from "@/lib/kysely";
-import EditSubjectButton from "./edit-subject-button";
-import DeleteSubjectButton from "./delete-subject-button";
+import EditSubjectButton from "./edit-button";
+import DeleteSubjectButton from "./delete-button";
 
 interface Params {
   subjects: Subject[];
