@@ -1,7 +1,7 @@
 import { Subject } from "@/lib/kysely";
 import SubjectsTable from "./_components/table";
 import AddSubjectButton from "./_components/add-button";
-import PaginationControls from "./_components/pagination-controls";
+import PaginationControls from "@/components/pagination-controls";
 
 interface SubjectsResponse {
   subjects: Subject[];
