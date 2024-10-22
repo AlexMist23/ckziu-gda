@@ -25,7 +25,7 @@ export default function SubjectsTable({ subjects }: Params) {
         </TableRow>
       </TableHeader>
       <TableBody>
-        {subjects &&
+        {subjects && subjects.length > 0 ? (
           subjects.map((subject) => (
             <TableRow key={subject.id}>
               <TableCell>{subject.name}</TableCell>
@@ -34,7 +34,14 @@ export default function SubjectsTable({ subjects }: Params) {
                 <DeleteSubjectButton subject={subject} />
               </TableCell>
             </TableRow>
-          ))}
+          ))
+        ) : (
+          <TableRow>
+            <TableCell colSpan={2} className="text-center">
+              No entries in the database
+            </TableCell>
+          </TableRow>
+        )}
       </TableBody>
     </Table>
   );
