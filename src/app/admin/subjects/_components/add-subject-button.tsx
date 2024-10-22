@@ -33,7 +33,7 @@ const formSchema = z.object({
   }),
 });
 
-export default function AddSubjectButton() {
+export default function AddTeacherButton() {
   const router = useRouter();
   const [isFetching, setIsFetching] = useState(false);
   const form = useForm<z.infer<typeof formSchema>>({

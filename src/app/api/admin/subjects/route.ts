@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
     // limit result and get pagination
     const [subjects, totalCountResult] = await Promise.all([
       subjectsQuery
-        .selectAll()
+        .select(["id", "name"])
         .orderBy(sortBy as "name" | "id", order as "asc" | "desc") // filter && order
         .limit(limit)
         .offset(offset)
@@ -61,17 +61,27 @@ export async function POST(request: NextRequest) {
   try {
     const { name } = await request.json();
     console.log(name);
+
+    // Validate input
     if (!name) {
-      return NextResponse.json(
-        { error: "Invalid request values" },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: "Name is required" }, { status: 400 });
     }
 
-    await db.insertInto("subjects").values({ name }).execute();
-    return NextResponse.json({ status: 200 });
+    // Insert subject and get the ID
+    const [insertedSubject] = await db
+      .insertInto("subjects")
+      .values({ name })
+      .returning(["id"])
+      .execute();
+
+    if (!insertedSubject?.id) {
+      throw new Error("Failed to insert subject");
+    }
+    return new NextResponse(null, { status: 204 });
   } catch (error) {
     console.error(error);
+
+    // Other errors
     return NextResponse.json(
       { error: "Failed to add subject" },
       { status: 500 }

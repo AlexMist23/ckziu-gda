@@ -1,8 +1,8 @@
 import { Subject } from "@/lib/kysely";
-import SubjectsTable from "./_components/table";
-import AddSubjectButton from "./_components/add-button";
+import SubjectsTable from "./_components/subjects-table";
+import AddSubjectButton from "./_components/add-subject-button";
 import PaginationControls from "@/components/pagination-controls";
-import { SubjectFilterSortForm } from "./_components/filter-sort-form";
+import { SubjectsFilterSortForm } from "./_components/subjects-filter-sort-form";
 import { Card } from "@/components/ui/card";
 
 interface SubjectsResponse {
@@ -60,7 +60,7 @@ export default async function SubjectsPage({
     <div className="container mx-auto py-10">
       <h1 className="text-2xl font-bold mb-5">Subjects Management</h1>
       <AddSubjectButton />
-      <SubjectFilterSortForm />
+      <SubjectsFilterSortForm />
       <Card className="p-2">
         <SubjectsTable subjects={subjects} />
       </Card>

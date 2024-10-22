@@ -39,7 +39,7 @@ interface EditSubjectButtonParams {
   subject: Subject;
 }
 
-export default function EditSubjectButton({
+export default function EditTeacherButton({
   subject,
 }: EditSubjectButtonParams) {
   const router = useRouter();

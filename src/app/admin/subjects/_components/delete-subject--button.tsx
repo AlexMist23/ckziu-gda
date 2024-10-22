@@ -22,7 +22,7 @@ interface DeleteSubjectButtonParams {
   subject: Subject;
 }
 
-export default function DeleteSubjectButton({
+export default function DeleteTeacherButton({
   subject,
 }: DeleteSubjectButtonParams) {
   const router = useRouter();

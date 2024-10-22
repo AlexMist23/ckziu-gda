@@ -1,22 +1,32 @@
 import { NextResponse, NextRequest } from "next/server";
 import { db } from "@/lib/kysely";
 
-export async function PUT(request: NextRequest) {
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
   try {
-    const { name, id } = await request.json();
-    if (!name || !id) {
+    // Validate params
+    const subjectId = parseInt(params.id, 10);
+    if (isNaN(subjectId)) {
       return NextResponse.json(
-        { error: "Invalid request values" },
-        { status: 500 }
+        { error: "Invalid subject ID" },
+        { status: 400 }
       );
+    }
+
+    // Validate req body
+    const { name } = await request.json();
+    if (!name) {
+      return NextResponse.json({ error: "Name is required" }, { status: 400 });
     }
 
     await db
       .updateTable("subjects")
-      .set({ name, id })
-      .where("id", "=", id)
+      .set({ name })
+      .where("id", "=", subjectId)
       .execute();
-    return NextResponse.json({ status: 200 });
+    return new NextResponse(null, { status: 204 });
   } catch (error) {
     console.error(error);
     return NextResponse.json(
@@ -26,20 +36,35 @@ export async function PUT(request: NextRequest) {
   }
 }
 
-export async function DELETE(request: NextRequest) {
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
   try {
-    const { id } = await request.json();
-    if (!id) {
+    const subjectId = parseInt(params.id, 10);
+
+    // Validate params
+    if (isNaN(subjectId)) {
       return NextResponse.json(
-        { error: "Invalid request values" },
-        { status: 500 }
+        { error: "Invalid subject ID" },
+        { status: 400 }
       );
     }
 
-    await db.deleteFrom("subjects").where("id", "=", id).execute();
-    return NextResponse.json({ status: 200 });
+    // Delete subject
+    const deletedSubject = await db
+      .deleteFrom("subjects")
+      .where("id", "=", subjectId)
+      .returning(["id"])
+      .execute();
+
+    if (!deletedSubject) {
+      return NextResponse.json({ error: "Subject not found" }, { status: 404 });
+    }
+    // Return 204 No Content for successful deletion
+    return new NextResponse(null, { status: 204 });
   } catch (error) {
-    console.error(error);
+    console.error("Error deleting subject:", error);
     return NextResponse.json(
       { error: "Failed to delete subject" },
       { status: 500 }

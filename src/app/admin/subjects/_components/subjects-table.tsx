@@ -8,8 +8,8 @@ import {
 } from "@/components/ui/table";
 
 import { Subject } from "@/lib/kysely";
-import EditSubjectButton from "./edit-button";
-import DeleteSubjectButton from "./delete-button";
+import EditSubjectButton from "./edit-subject-button";
+import DeleteSubjectButton from "./delete-subject--button";
 
 interface Params {
   subjects: Subject[];
@@ -29,7 +29,7 @@ export default function SubjectsTable({ subjects }: Params) {
           subjects.map((subject) => (
             <TableRow key={subject.id}>
               <TableCell>{subject.name}</TableCell>
-              <TableCell className="w-24">
+              <TableCell className="flex gap-2">
                 <EditSubjectButton subject={subject} />
                 <DeleteSubjectButton subject={subject} />
               </TableCell>

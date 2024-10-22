@@ -30,7 +30,7 @@ const subjectFilterSortSchema = z.object({
 
 type SubjectFilterSortValues = z.infer<typeof subjectFilterSortSchema>;
 
-export function SubjectFilterSortForm() {
+export function SubjectsFilterSortForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const form = useForm<SubjectFilterSortValues>({
@@ -117,8 +117,8 @@ export function SubjectFilterSortForm() {
               </FormItem>
             )}
           />
-          <Button className="self-end" type="submit">
-            <Search className="" />
+          <Button size={"icon"} className="self-end" type="submit">
+            <Search className="w-4 h-4" />
           </Button>
         </div>
       </form>
