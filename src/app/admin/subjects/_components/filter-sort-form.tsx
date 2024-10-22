@@ -4,7 +4,13 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
-import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -14,6 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { z } from "zod";
+import { Search } from "lucide-react";
 
 const subjectFilterSortSchema = z.object({
   name: z.string().optional(),
@@ -26,7 +33,6 @@ type SubjectFilterSortValues = z.infer<typeof subjectFilterSortSchema>;
 export function SubjectFilterSortForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-
   const form = useForm<SubjectFilterSortValues>({
     resolver: zodResolver(subjectFilterSortSchema),
     defaultValues: {
@@ -58,8 +64,9 @@ export function SubjectFilterSortForm() {
             name="name"
             render={({ field }) => (
               <FormItem className="flex-1">
+                <FormLabel className="text-muted-foreground">Search</FormLabel>
                 <FormControl>
-                  <Input placeholder="Filter by name" {...field} />
+                  <Input placeholder="Search by name" {...field} />
                 </FormControl>
               </FormItem>
             )}
@@ -69,6 +76,7 @@ export function SubjectFilterSortForm() {
             name="sortBy"
             render={({ field }) => (
               <FormItem>
+                <FormLabel className="text-muted-foreground">Sort by</FormLabel>
                 <Select
                   onValueChange={field.onChange}
                   defaultValue={field.value}
@@ -91,6 +99,7 @@ export function SubjectFilterSortForm() {
             name="order"
             render={({ field }) => (
               <FormItem>
+                <FormLabel className="text-muted-foreground">Order</FormLabel>
                 <Select
                   onValueChange={field.onChange}
                   defaultValue={field.value}
@@ -108,7 +117,9 @@ export function SubjectFilterSortForm() {
               </FormItem>
             )}
           />
-          <Button type="submit">Apply</Button>
+          <Button className="self-end" type="submit">
+            <Search className="" />
+          </Button>
         </div>
       </form>
     </Form>
