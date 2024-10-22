@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbo",
+    "dev": "cross-env NODE_OPTIONS='--inspect' next dev --turbo",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
@@ -58,6 +58,7 @@
     "@types/node": "^20",
     "@types/nodemailer": "^6.4.16",
     "@types/react-syntax-highlighter": "^15.5.13",
+    "cross-env": "^7.0.3",
     "eslint": "^8",
     "eslint-config-next": "^15.0.0",
     "postcss": "^8",
