@@ -6,8 +6,24 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Separator } from "@/components/ui/separator";
 import { Menu } from "lucide-react";
+import { auth } from "@/lib/auth";
+import { redirect } from "next/navigation";
 
-export default function AdminLayout({ children }: { children: ReactNode }) {
+export default async function AdminLayout({
+  children,
+}: {
+  children: ReactNode;
+}) {
+  const session = await auth();
+
+  if (!session) {
+    redirect("/api/auth/signin");
+  }
+
+  if (session.user.role !== "admin") {
+    redirect("/");
+  }
+
   return (
     <div className="flex h-screen overflow-hidden bg-background">
       {/* Sidebar for larger screens */}

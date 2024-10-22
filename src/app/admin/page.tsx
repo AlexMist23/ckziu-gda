@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { adminNavLinks } from "@/data/sidebar-links";
 import Link from "next/link";
 
-export default function AdminDashboard() {
+export default async function AdminDashboard() {
   return (
     <div className="space-y-6">
       <h1 className="text-3xl font-bold text-primary">Admin Dashboard</h1>
