@@ -12,7 +12,7 @@ export default function DropHeader({ className }: { className?: string }) {
     <nav
       className={cn(
         className,
-        "border-t-2 p-2 fixed mt-[270px] flex flex-col bg-background backdrop-blur border-b shadow-sm w-full -ml-4 gap-1"
+        "border-t-2 p-2 fixed mt-[315px] flex flex-col bg-background backdrop-blur border-b shadow-sm w-full -ml-4 gap-1"
       )}
     >
       {navLinks.map((link) => (
