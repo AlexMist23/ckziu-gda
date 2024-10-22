@@ -1,0 +1,187 @@
+// app/admin/teachers/_components/add-teacher-button.tsx
+"use client";
+
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { toast } from "@/hooks/use-toast";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { DialogClose, DialogTrigger } from "@radix-ui/react-dialog";
+import { Button } from "@/components/ui/button";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { useRouter } from "next/navigation";
+import { CirclePlus } from "lucide-react";
+import { useState } from "react";
+import { Subject } from "@/lib/kysely";
+import { MultiSelect, type Option } from "@/components/ui/multi-select";
+
+const formSchema = z.object({
+  name: z.string().min(2, {
+    message: "Name must be at least 2 characters.",
+  }),
+  email: z.string().email({
+    message: "Please enter a valid email address.",
+  }),
+  subjects: z.array(z.number()).min(1, {
+    message: "Please select at least one subject.",
+  }),
+});
+
+interface Params {
+  subjects: Subject[];
+}
+
+export default function AddTeacherButton({ subjects }: Params) {
+  const router = useRouter();
+  const [isFetching, setIsFetching] = useState(false);
+  const [open, setOpen] = useState(false);
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      name: "",
+      email: "",
+      subjects: [],
+    },
+  });
+
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    setIsFetching(true);
+    try {
+      const response = await fetch("/api/admin/teachers", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: values.name,
+          email: values.email,
+          subjects_ids: values.subjects, // Send subject IDs directly
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to add teacher");
+      }
+      toast({
+        title: "Success",
+        description: `Added teacher: ${values.name}`,
+      });
+      router.refresh();
+      form.reset();
+      setOpen(false);
+    } catch (error) {
+      console.error(error);
+      toast({
+        title: "Error",
+        description: "Failed to add teacher",
+        variant: "destructive",
+      });
+    } finally {
+      setIsFetching(false);
+    }
+  }
+
+  const subjectOptions: Option[] = subjects.map((subject) => ({
+    label: subject.name,
+    value: subject.id,
+  }));
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button disabled={isFetching} className="mb-4">
+          <CirclePlus className="w-4 h-4 mr-2" /> Add Teacher
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Add Teacher</DialogTitle>
+          <DialogDescription>
+            Add new teacher to the database.
+          </DialogDescription>
+        </DialogHeader>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)}>
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Name</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Enter teacher name" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Enter teacher email"
+                      type="email"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <Controller
+              name="subjects"
+              control={form.control}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Subjects</FormLabel>
+                  <FormControl>
+                    <MultiSelect
+                      options={subjectOptions}
+                      selected={field.value}
+                      onChange={field.onChange}
+                      placeholder="Select subjects"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <DialogFooter>
+              <Button disabled={isFetching} type="submit">
+                Add
+              </Button>
+              <DialogClose asChild>
+                <Button
+                  disabled={isFetching}
+                  variant="outline"
+                  onClick={() => form.reset()}
+                >
+                  Close
+                </Button>
+              </DialogClose>
+            </DialogFooter>
+          </form>
+        </Form>
+      </DialogContent>
+    </Dialog>
+  );
+}
