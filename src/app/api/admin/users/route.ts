@@ -19,13 +19,13 @@ export async function GET(request: NextRequest) {
   try {
     // get filtered query
     const baseQuery = db
-      .selectFrom("subjects")
-      .where(sql`LOWER(name)`, "like", `%${name.toLowerCase()}%`);
+      .selectFrom("users")
+      .where(sql`LOWER(name)`, "like", `%${name.toLowerCase()}%`); // filtering by name
 
     // limit result and get totalCount
-    const [subjects, totalCountResult] = await Promise.all([
+    const [users, totalCountResult] = await Promise.all([
       baseQuery
-        .select(["id", "name"])
+        .select(["id", "name", "email", "image", "role"])
         .orderBy(sortBy as "name" | "id", order as "asc" | "desc") // filter && order
         .limit(limit)
         .offset(offset)
@@ -40,7 +40,7 @@ export async function GET(request: NextRequest) {
     const totalPages = Math.ceil(totalCount / limit);
 
     return NextResponse.json({
-      subjects,
+      users,
       pagination: {
         currentPage: page,
         totalPages,
@@ -49,47 +49,9 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error("Error fetching subjects:", error);
+    console.error("Error fetching users:", error);
     return NextResponse.json(
       { error: "Failed to fetch subjects" },
-      { status: 500 }
-    );
-  }
-}
-
-export async function POST(request: NextRequest) {
-  try {
-    const { name } = await request.json();
-    console.log(name);
-
-    // Validate input
-    if (!name) {
-      return NextResponse.json({ error: "Name is required" }, { status: 400 });
-    }
-
-    // Insert subject and get the ID
-    const [insertedSubject] = await db
-      .insertInto("subjects")
-      .values({ name })
-      .returning(["id"])
-      .execute();
-
-    if (!insertedSubject?.id) {
-      throw new Error("Failed to insert subject");
-    }
-    return NextResponse.json(
-      {
-        message: "Subject added successfully",
-        teacherId: insertedSubject.id,
-      },
-      { status: 201 }
-    );
-  } catch (error) {
-    console.error(error);
-
-    // Other errors
-    return NextResponse.json(
-      { error: "Failed to add subject" },
       { status: 500 }
     );
   }
