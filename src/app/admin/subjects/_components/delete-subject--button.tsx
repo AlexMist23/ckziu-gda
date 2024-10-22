@@ -58,7 +58,7 @@ export default function DeleteTeacherButton({
 
   return (
     <AlertDialog>
-      <AlertDialogTrigger>
+      <AlertDialogTrigger asChild>
         <Button variant={"destructive"} size={"icon"} disabled={isfetching}>
           {isfetching ? (
             <Loader2 className="w-4 h-4 animate-spin" />
