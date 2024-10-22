@@ -28,6 +28,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
+    // TODO: Update next-themes then delete suppressHydrationWarning
     <html lang="en" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} flex flex-col antialiased min-h-screen`}
