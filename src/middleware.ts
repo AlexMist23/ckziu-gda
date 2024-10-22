@@ -1,25 +1,27 @@
-export { auth as middleware } from "@/lib/auth";
+import { auth } from "@/lib/auth";
 import { NextResponse } from "next/server";
-import { auth } from "./lib/auth";
+import type { NextRequest } from "next/server";
 
-export default auth((req) => {
-  const isLoggedIn = !!req.auth;
+export async function middleware(request: NextRequest) {
+  const session = await auth();
+  const isLoggedIn = !!session;
   const isAdminRoute =
-    req.nextUrl.pathname.startsWith("/admin") ||
-    req.nextUrl.pathname.startsWith("/api/admin");
-  const isAdmin = req.auth?.user?.role === "admin";
+    request.nextUrl.pathname.startsWith("/admin") ||
+    request.nextUrl.pathname.startsWith("/api/admin");
+  const isAdmin = session?.user?.role === "admin";
 
-  if (isAdminRoute) {
-    if (!isLoggedIn) {
-      return NextResponse.redirect(new URL("/api/auth/signin", req.url));
-    }
-    if (!isAdmin) {
-      return NextResponse.redirect(new URL("/", req.url));
-    }
+  // Redirect to sign in if accessing protected route while not logged in
+  if (isAdminRoute && !isLoggedIn) {
+    return Response.redirect(new URL("/api/auth/signin", request.url));
+  }
+
+  // Redirect non-admin users attempting to access admin routes
+  if (isAdminRoute && !isAdmin) {
+    return Response.redirect(new URL("/", request.url));
   }
 
   return NextResponse.next();
-});
+}
 
 export const config = {
   matcher: ["/admin/:path*", "/api/admin/:path*"],

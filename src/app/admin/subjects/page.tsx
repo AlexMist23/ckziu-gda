@@ -44,22 +44,20 @@ async function getSubjects({
   return await data.json();
 }
 
-export default async function SubjectsPage(
-  props: {
-    searchParams: Promise<{
-      name?: string;
-      sortBy?: string;
-      order?: string;
-      page?: string;
-    }>;
-  }
-) {
+export default async function SubjectsPage(props: {
+  searchParams: Promise<{
+    name?: string;
+    sortBy?: string;
+    order?: string;
+    page?: string;
+  }>;
+}) {
   const searchParams = await props.searchParams;
   // const { page, name, sortBy, order } = searchParams;
   const { subjects, pagination } = await getSubjects({ ...searchParams });
   return (
     <div className="container mx-auto py-10">
-      <h1 className="text-2xl font-bold mb-5">Subjects Management</h1>
+      <h1 className="text-2xl font-bold mb-5">Subjects Table</h1>
       <AddSubjectButton />
       <SubjectsFilterSortForm />
       <Card className="p-2">
