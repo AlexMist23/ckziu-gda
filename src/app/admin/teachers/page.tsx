@@ -64,16 +64,17 @@ async function getSubjects(): Promise<getSubjectsParams> {
   }
   return await data.json();
 }
-export default async function Page({
-  searchParams,
-}: {
-  searchParams: {
-    name?: string;
-    sortBy?: string;
-    order?: string;
-    page?: string;
-  };
-}) {
+export default async function Page(
+  props: {
+    searchParams: Promise<{
+      name?: string;
+      sortBy?: string;
+      order?: string;
+      page?: string;
+    }>;
+  }
+) {
+  const searchParams = await props.searchParams;
   const { teachers, pagination } = await getTableData({ ...searchParams });
   const { subjects } = await getSubjects();
   return (

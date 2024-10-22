@@ -1,10 +1,8 @@
 import { NextResponse, NextRequest } from "next/server";
 import { db } from "@/lib/kysely";
 
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function PUT(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     // Validate params
     const subjectId = parseInt(params.id, 10);
@@ -36,10 +34,8 @@ export async function PUT(
   }
 }
 
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function DELETE(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     const subjectId = parseInt(params.id, 10);
 

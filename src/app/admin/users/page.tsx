@@ -36,16 +36,17 @@ async function getTableData({
   return await data.json();
 }
 
-export default async function Page({
-  searchParams,
-}: {
-  searchParams: {
-    name?: string;
-    sortBy?: string;
-    order?: string;
-    page?: string;
-  };
-}) {
+export default async function Page(
+  props: {
+    searchParams: Promise<{
+      name?: string;
+      sortBy?: string;
+      order?: string;
+      page?: string;
+    }>;
+  }
+) {
+  const searchParams = await props.searchParams;
   const { users, pagination } = await getTableData({ ...searchParams });
   return (
     <div className="container mx-auto py-10">
