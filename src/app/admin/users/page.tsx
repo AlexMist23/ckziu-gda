@@ -50,9 +50,7 @@ export default async function Page({
   return (
     <div className="container mx-auto py-10">
       <h1 className="text-2xl font-bold mb-5">Users Table</h1>
-      {
-        // <UsersFilterSortForm />
-      }
+      <UsersFilterSortForm />
       <Card className="p-2">
         <UsersTable users={users} />
       </Card>
