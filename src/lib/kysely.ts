@@ -119,3 +119,13 @@ export { sql } from "kysely";
 export type Subject = Selectable<SubjectsTable>;
 export type NewSubject = Insertable<SubjectsTable>;
 export type PersonSubject = Updateable<SubjectsTable>;
+
+export type Teacher = Selectable<TeachersTable>;
+export type NewTeacher = Insertable<TeachersTable>;
+export type PersonTeacher = Updateable<TeachersTable>;
+
+export type Schedule = Selectable<SchedulesTable>;
+export type NewSchedule = Insertable<SchedulesTable>;
+export type PersonSchedule = Updateable<SchedulesTable>;
+
+export type TeacherWithSubjects = Teacher & { subjects: Subject[] };
