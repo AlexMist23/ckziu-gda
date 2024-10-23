@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { adminNavLinks } from "@/data/sidebar-links";
+import { adminNavLinks } from "@/data/admin-sidebar-data";
 import Link from "next/link";
 
 export default async function AdminDashboard() {
@@ -16,7 +16,6 @@ export default async function AdminDashboard() {
                   <CardTitle className="text-sm font-medium">
                     {link.label}
                   </CardTitle>
-                  <link.icon className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
                   <p className="text-xs text-muted-foreground">
