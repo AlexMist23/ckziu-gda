@@ -29,9 +29,11 @@ export default function SubjectsTable({ subjects }: Params) {
           subjects.map((subject) => (
             <TableRow key={subject.id}>
               <TableCell>{subject.name}</TableCell>
-              <TableCell className="flex gap-2">
-                <EditSubjectButton subject={subject} />
-                <DeleteSubjectButton subject={subject} />
+              <TableCell className="w-24">
+                <div className="flex gap-2">
+                  <EditSubjectButton subject={subject} />
+                  <DeleteSubjectButton subject={subject} />
+                </div>
               </TableCell>
             </TableRow>
           ))

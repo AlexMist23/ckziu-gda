@@ -56,11 +56,11 @@ export default async function SubjectsPage(props: {
   // const { page, name, sortBy, order } = searchParams;
   const { subjects, pagination } = await getSubjects({ ...searchParams });
   return (
-    <div className="container mx-auto py-10">
+    <div className="flex flex-col mx-auto py-10 w-full max-w-[1000px]">
       <h1 className="text-2xl font-bold mb-5">Subjects Table</h1>
       <AddSubjectButton />
       <SubjectsFilterSortForm />
-      <Card className="p-2">
+      <Card className="p-2 max-w-[800px] mx-auto w-full">
         <SubjectsTable subjects={subjects} />
       </Card>
 

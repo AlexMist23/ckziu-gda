@@ -15,11 +15,16 @@ import { Badge } from "@/components/ui/badge";
 interface Params {
   teachers: TeacherWithSubjects[];
   subjects: Subject[];
+  className?: string;
 }
 
-export default function TeachersTable({ teachers, subjects }: Params) {
+export default function TeachersTable({
+  teachers,
+  subjects,
+  className,
+}: Params) {
   return (
-    <Table>
+    <Table className={className}>
       <TableHeader>
         <TableRow>
           <TableHead>Name</TableHead>
@@ -48,9 +53,11 @@ export default function TeachersTable({ teachers, subjects }: Params) {
                     ))}
                 </div>
               </TableCell>
-              <TableCell className="flex gap-2">
-                <EditTeacherButton teacher={teacher} subjects={subjects} />
-                <DeleteTeacherButton teacher={teacher} />
+              <TableCell className="w-24">
+                <div className="flex gap-2">
+                  <EditTeacherButton teacher={teacher} subjects={subjects} />
+                  <DeleteTeacherButton teacher={teacher} />
+                </div>
               </TableCell>
             </TableRow>
           ))

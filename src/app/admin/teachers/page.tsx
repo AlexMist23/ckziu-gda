@@ -64,21 +64,19 @@ async function getSubjects(): Promise<getSubjectsParams> {
   }
   return await data.json();
 }
-export default async function Page(
-  props: {
-    searchParams: Promise<{
-      name?: string;
-      sortBy?: string;
-      order?: string;
-      page?: string;
-    }>;
-  }
-) {
+export default async function Page(props: {
+  searchParams: Promise<{
+    name?: string;
+    sortBy?: string;
+    order?: string;
+    page?: string;
+  }>;
+}) {
   const searchParams = await props.searchParams;
   const { teachers, pagination } = await getTableData({ ...searchParams });
   const { subjects } = await getSubjects();
   return (
-    <div className="container mx-auto py-10">
+    <div className="mx-auto py-10 w-full max-w-[1000px]">
       <h1 className="text-2xl font-bold mb-5">Teachers Table</h1>
       {subjects && subjects.length > 0 ? (
         <AddSubjectButton subjects={subjects} />

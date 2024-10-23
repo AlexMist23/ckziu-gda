@@ -75,7 +75,7 @@ export default function AddTeacherButton() {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button disabled={isFetching} className="mb-4">
+        <Button disabled={isFetching} className="mr-auto mb-4">
           <CirclePlus className="w-4 h-4 mr-2" /> Add Subject
         </Button>
       </DialogTrigger>

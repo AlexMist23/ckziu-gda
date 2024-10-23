@@ -47,10 +47,10 @@ export default async function Page(props: {
   const searchParams = await props.searchParams;
   const { users, pagination } = await getTableData({ ...searchParams });
   return (
-    <div className="container mx-auto py-10">
+    <div className="mx-auto py-10 w-full max-w-[1000px]">
       <h1 className="text-2xl font-bold mb-5">Users Table</h1>
       <UsersFilterSortForm />
-      <Card className="p-2">
+      <Card className="">
         <UsersTable users={users} />
       </Card>
       <PaginationControls

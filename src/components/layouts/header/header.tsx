@@ -14,7 +14,7 @@ export default function Header() {
           "w-full bg-background/80 backdrop-blur border-b shadow-sm"
         )}
       >
-        <div className="flex items-center h-16 gap-4 px-4 mx-auto text-sm xl:container">
+        <div className="flex items-center h-16 gap-4 px-4 mx-auto text-sm max-w-[1900]">
           <DropButton className="md:hidden" />
           <Link
             href={"/"}
