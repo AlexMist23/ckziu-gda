@@ -49,15 +49,14 @@ export default function RootLayout({
         >
           <SidebarProvider>
             <AdminSidebar variant="inset"></AdminSidebar>
-
-            <SidebarInset>
+            <SidebarInset className="min-h-screen">
               <Header />
               <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
                 <SidebarTrigger className="-ml-1" />
                 <Separator orientation="vertical" className="mr-2 h-4" />
                 <AdminSidebarBreadcrumbs />
               </header>
-              <main className="p-4 flex flex-col">{children}</main>
+              <main className="flex flex-col px-4 h-full">{children}</main>
               <Footer />
             </SidebarInset>
             <Toaster />

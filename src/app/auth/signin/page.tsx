@@ -1,5 +1,6 @@
 "use client";
 
+import { Separator } from "@/components/ui/separator";
 import { signIn } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,39 +11,54 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Github } from "lucide-react";
+import GoogleAuthLogo from "@/components/icons/google-auth-logo";
+import GithubAuthLogo from "@/components/icons/github-auth-logo";
+import { Fragment } from "react";
+
+const providers = [
+  { id: "github", name: "GitHub", icon: GithubAuthLogo },
+  { id: "google", name: "Google", icon: GoogleAuthLogo },
+  // Add more providers as needed
+];
 
 export default function SignIn() {
   return (
-    <div className="flex items-center justify-center min-h-screen bg-background">
-      <Card className="w-[350px]">
-        <CardHeader>
-          <CardTitle>Sign In</CardTitle>
-          <CardDescription>
-            Choose a method to sign in to your account.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Button
-            className="w-full"
-            onClick={() => signIn("github", { callbackUrl: "/" })}
-          >
-            <Github className="mr-2 h-4 w-4" />
-            Sign in with GitHub
-          </Button>
-          <Button
-            className="w-full"
-            onClick={() => signIn("google", { callbackUrl: "/" })}
-          >
-            Sign in with Google
-          </Button>
-        </CardContent>
-        <CardFooter className="flex justify-center">
-          <p className="text-sm text-muted-foreground">
-            By signing in, you agree to our Terms of Service and Privacy Policy.
-          </p>
-        </CardFooter>
-      </Card>
-    </div>
+    <Card className="max-w-[450px] mx-auto my-auto">
+      <CardHeader>
+        <CardTitle className="text-2xl">Create an account</CardTitle>
+        <CardDescription>
+          Choose a method to create your account
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {providers.map((provider, index) => (
+          <Fragment key={provider.id}>
+            <Button
+              key={provider.id}
+              className="w-full"
+              variant="outline"
+              onClick={() => signIn(provider.id, { callbackUrl: "/" })}
+            >
+              <provider.icon className="mr-2 h-4 w-4" />
+              {provider.name}
+            </Button>
+            {index + 1 < providers.length && <Separator />}
+          </Fragment>
+        ))}
+      </CardContent>
+      <CardFooter className="flex flex-col items-center text-center">
+        <p className="text-sm text-muted-foreground px-6">
+          By clicking continue, you agree to our{" "}
+          <a href="#" className="underline">
+            Terms of Service
+          </a>{" "}
+          and{" "}
+          <a href="#" className="underline">
+            Privacy Policy
+          </a>
+          .
+        </p>
+      </CardFooter>
+    </Card>
   );
 }

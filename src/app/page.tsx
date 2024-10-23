@@ -12,7 +12,7 @@ import { ArrowRight, Database, Lock, Palette, Code } from "lucide-react";
 
 export default async function Home() {
   return (
-    <main className="flex flex-col items-center justify-center min-h-screen p-24">
+    <main className="flex flex-col items-center justify-center p-24">
       <h1 className="mb-8 text-4xl font-bold">Welcome to Your Next.js App</h1>
       <p className="max-w-2xl mb-12 text-xl text-center">
         This template is set up with Next.js, shadcn UI, Vercel Postgres, and
