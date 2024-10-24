@@ -7,6 +7,9 @@ import {
 } from "kysely";
 import { createKysely } from "@vercel/postgres-kysely";
 
+type ISODateString =
+  `${number}-${number}-${number}T${number}:${number}:${number}.${number}Z`;
+
 interface AccountsTable {
   id: Generated<number>;
   userId: number;
@@ -31,11 +34,12 @@ interface DatabaseMetricsTable {
 
 interface LecturesTable {
   id: Generated<number>;
-  subject_id: number | null;
-  teacher_id: number | null;
+  subject_id: number;
+  teacher_id: number;
+  schedule_id: number;
   start_time: string;
   end_time: string;
-  room: string | null;
+  room: string;
 }
 
 interface PresencesTable {
@@ -46,14 +50,9 @@ interface PresencesTable {
   created_at: ColumnType<Date, string | undefined, never>;
 }
 
-interface ScheduleLecturesTable {
-  schedule_id: number;
-  lecture_id: number;
-}
-
 interface SchedulesTable {
   id: Generated<number>;
-  date: ColumnType<Date, string, string>;
+  date: ISODateString;
 }
 
 interface SessionsTable {
@@ -103,7 +102,6 @@ export interface Database {
   database_metrics: DatabaseMetricsTable;
   lectures: LecturesTable;
   presences: PresencesTable;
-  schedule_lectures: ScheduleLecturesTable;
   schedules: SchedulesTable;
   sessions: SessionsTable;
   subjects: SubjectsTable;
@@ -116,11 +114,12 @@ export interface Database {
 export const db = createKysely<Database>();
 export { sql } from "kysely";
 
+export type TeacherWithSubjects = Teacher & { subjects: Subject[] };
+export type ScheduleWithLectures = Schedule & { lectures: Lecture[] };
+
 export type Subject = Selectable<SubjectsTable>;
 export type NewSubject = Insertable<SubjectsTable>;
 export type PersonSubject = Updateable<SubjectsTable>;
-
-export type TeacherWithSubjects = Teacher & { subjects: Subject[] };
 
 export type Teacher = Selectable<TeachersTable>;
 export type NewTeacher = Insertable<TeachersTable>;
@@ -133,3 +132,7 @@ export type PersonSchedule = Updateable<SchedulesTable>;
 export type User = Selectable<UsersTable>;
 export type NewUser = Insertable<UsersTable>;
 export type PersonUser = Updateable<UsersTable>;
+
+export type Lecture = Selectable<LecturesTable>;
+export type NewLecture = Insertable<LecturesTable>;
+export type PersonLecture = Updateable<LecturesTable>;
