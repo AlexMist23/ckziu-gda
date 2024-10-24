@@ -20,12 +20,17 @@ export const adminNavLinks: NavGroup[] = [
     ],
   },
   {
-    group: "Management",
+    group: "Auth",
     items: [
       {
         label: "Users",
         href: "/admin/users",
       },
+    ],
+  },
+  {
+    group: "Models",
+    items: [
       {
         label: "Teachers",
         href: "/admin/teachers",
@@ -41,7 +46,7 @@ export const adminNavLinks: NavGroup[] = [
     ],
   },
   {
-    group: "System",
+    group: "Tools ",
     items: [
       {
         label: "Database Schema",
