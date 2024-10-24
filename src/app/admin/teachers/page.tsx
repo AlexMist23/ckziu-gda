@@ -1,7 +1,7 @@
 import { Subject, TeacherWithSubjects } from "@/lib/kysely";
-import AddSubjectButton from "./_components/add-teacher-button";
+import AddTeacherButton from "./_components/add-teacher-button";
 import PaginationControls from "@/components/pagination-controls";
-import { SubjectFilterSortForm } from "./_components/teachers-filter-sort-form";
+import { TeacherFilterSortForm } from "./_components/teachers-filter-sort-form";
 import TeachersTable from "./_components/teachers-table";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -79,13 +79,13 @@ export default async function Page(props: {
     <div className="mx-auto py-10 w-full max-w-[1000px]">
       <h1 className="text-2xl font-bold mb-5">Teachers Table</h1>
       {subjects && subjects.length > 0 ? (
-        <AddSubjectButton subjects={subjects} />
+        <AddTeacherButton subjects={subjects} />
       ) : (
         <>
           <Button>Add Teacher</Button> <p>Add subjects first!</p>
         </>
       )}
-      <SubjectFilterSortForm />
+      <TeacherFilterSortForm />
       <Card className="p-2">
         <TeachersTable teachers={teachers} subjects={subjects} />
       </Card>

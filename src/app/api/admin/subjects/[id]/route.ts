@@ -1,7 +1,40 @@
 import { NextResponse, NextRequest } from "next/server";
 import { db } from "@/lib/kysely";
 
-export async function PUT(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+export async function GET(
+  request: NextRequest,
+  props: { params: Promise<{ id: string }> }
+) {
+  const params = await props.params;
+  try {
+    // Validate params
+    const subjectId = parseInt(params.id, 10);
+    if (isNaN(subjectId)) {
+      return NextResponse.json(
+        { error: "Invalid subject ID" },
+        { status: 400 }
+      );
+    }
+
+    await db
+      .selectFrom("subjects")
+      .select(["id", "name"])
+      .where("id", "=", subjectId)
+      .execute();
+    return new NextResponse(null, { status: 204 });
+  } catch (error) {
+    console.error(error);
+    return NextResponse.json(
+      { error: "Failed to edit subject" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function PUT(
+  request: NextRequest,
+  props: { params: Promise<{ id: string }> }
+) {
   const params = await props.params;
   try {
     // Validate params
@@ -34,7 +67,10 @@ export async function PUT(request: NextRequest, props: { params: Promise<{ id: s
   }
 }
 
-export async function DELETE(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+export async function DELETE(
+  request: NextRequest,
+  props: { params: Promise<{ id: string }> }
+) {
   const params = await props.params;
   try {
     const subjectId = parseInt(params.id, 10);

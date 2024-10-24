@@ -51,11 +51,7 @@ export async function GET(request: NextRequest) {
 
     // Get total count
     const totalCountResult = await baseQuery
-      .select((eb) => [
-        eb.fn.count("t.id").as("count"),
-        // OR use sql template:
-        // sql<string>`count(t.id)`.as('count')
-      ])
+      .select((eb) => [eb.fn.count("t.id").as("count")])
       .executeTakeFirst();
 
     const totalCount = totalCountResult?.count
@@ -64,7 +60,7 @@ export async function GET(request: NextRequest) {
 
     const totalPages = Math.ceil(totalCount / limit);
 
-    // Transform the results to clean up null subjects
+    // Transform the results to clean up null values
     const transformedTeachers = teachers.map((teacher) => ({
       ...teacher,
       subjects: teacher.subjects || [],
@@ -82,7 +78,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error("Error fetching teachers:", error);
     return NextResponse.json(
-      { error: "Failed to fetch subjects" },
+      { error: "Failed to fetch teachers" },
       { status: 500 }
     );
   }
@@ -105,7 +101,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Insert teacher and get the ID
+    // Insert object and get the ID
     const [insertedTeacher] = await db
       .insertInto("teachers")
       .values({ name, email })
@@ -116,7 +112,7 @@ export async function POST(request: NextRequest) {
       throw new Error("Failed to insert teacher");
     }
 
-    // Insert teacher-subject relationships
+    // Insert relationships
     await db
       .insertInto("teacher_subjects")
       .values(

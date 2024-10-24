@@ -1,7 +1,7 @@
 // app/admin/teachers/_components/add-teacher-button.tsx
 "use client";
 
-import { useForm, Controller } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { toast } from "@/hooks/use-toast";
@@ -27,8 +27,6 @@ import { Input } from "@/components/ui/input";
 import { useRouter } from "next/navigation";
 import { CirclePlus } from "lucide-react";
 import { useState } from "react";
-import { Subject } from "@/lib/kysely";
-import { MultiSelect, type Option } from "@/components/ui/multi-select";
 
 const formSchema = z.object({
   name: z.string().min(2, {
@@ -42,11 +40,7 @@ const formSchema = z.object({
   }),
 });
 
-interface Params {
-  subjects: Subject[];
-}
-
-export default function AddTeacherButton({ subjects }: Params) {
+export default function AddTeacherButton() {
   const router = useRouter();
   const [isFetching, setIsFetching] = useState(false);
   const [open, setOpen] = useState(false);
@@ -96,11 +90,6 @@ export default function AddTeacherButton({ subjects }: Params) {
     }
   }
 
-  const subjectOptions: Option[] = subjects.map((subject) => ({
-    label: subject.name,
-    value: subject.id,
-  }));
-
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
@@ -147,18 +136,19 @@ export default function AddTeacherButton({ subjects }: Params) {
                 </FormItem>
               )}
             />
-            <Controller
-              name="subjects"
+            <FormField
               control={form.control}
+              name="subjects"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Subjects</FormLabel>
+                  <FormLabel>Lectures</FormLabel>
                   <FormControl>
-                    <MultiSelect
-                      options={subjectOptions}
-                      selected={field.value}
-                      onChange={field.onChange}
-                      placeholder="Select subjects"
+                    <SelectMultiSearch
+                      placeholder="Select lectures"
+                      onSelect={field.onChange}
+                      apiEndpoint="/api/admin/subjects/search"
+                      buttonClassName="w-full"
+                      popoverWidth="w-full"
                     />
                   </FormControl>
                   <FormMessage />

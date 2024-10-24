@@ -22,31 +22,31 @@ import {
 import { z } from "zod";
 import { Search } from "lucide-react";
 
-const subjectFilterSortSchema = z.object({
+const teacherFilterSortSchema = z.object({
   name: z.string().optional(),
   sortBy: z.enum(["name", "id"]).default("name"),
   order: z.enum(["asc", "desc"]).default("asc"),
 });
 
-type SubjectFilterSortValues = z.infer<typeof subjectFilterSortSchema>;
+type TeacherFilterSortValues = z.infer<typeof teacherFilterSortSchema>;
 
-export function SubjectFilterSortForm() {
+export function TeacherFilterSortForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const form = useForm<SubjectFilterSortValues>({
-    resolver: zodResolver(subjectFilterSortSchema),
+  const form = useForm<TeacherFilterSortValues>({
+    resolver: zodResolver(teacherFilterSortSchema),
     defaultValues: {
       name: searchParams.get("name") || "",
       sortBy:
-        (searchParams.get("sortBy") as SubjectFilterSortValues["sortBy"]) ||
+        (searchParams.get("sortBy") as TeacherFilterSortValues["sortBy"]) ||
         "name",
       order:
-        (searchParams.get("order") as SubjectFilterSortValues["order"]) ||
+        (searchParams.get("order") as TeacherFilterSortValues["order"]) ||
         "asc",
     },
   });
 
-  function onSubmit(data: SubjectFilterSortValues) {
+  function onSubmit(data: TeacherFilterSortValues) {
     const params = new URLSearchParams();
     if (data.name) params.set("name", data.name);
     params.set("sortBy", data.sortBy);

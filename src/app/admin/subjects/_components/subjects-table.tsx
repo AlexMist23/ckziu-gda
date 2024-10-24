@@ -20,6 +20,7 @@ export default function SubjectsTable({ subjects }: Params) {
     <Table>
       <TableHeader>
         <TableRow>
+          <TableHead>Id</TableHead>
           <TableHead>Name</TableHead>
           <TableHead>Actions</TableHead>
         </TableRow>
@@ -28,6 +29,9 @@ export default function SubjectsTable({ subjects }: Params) {
         {subjects && subjects.length > 0 ? (
           subjects.map((subject) => (
             <TableRow key={subject.id}>
+              <TableCell className="text-muted-foreground">
+                {subject.id}
+              </TableCell>
               <TableCell>{subject.name}</TableCell>
               <TableCell className="w-24">
                 <div className="flex gap-2">

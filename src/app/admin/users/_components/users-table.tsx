@@ -22,6 +22,7 @@ export default function UsersTable({ users, className }: Params) {
     <Table className={className}>
       <TableHeader>
         <TableRow>
+          <TableHead>Id</TableHead>
           <TableHead>Avatar</TableHead>
           <TableHead>Name</TableHead>
           <TableHead>E-mail</TableHead>
@@ -33,6 +34,7 @@ export default function UsersTable({ users, className }: Params) {
         {users && users.length > 0 ? (
           users.map((user) => (
             <TableRow key={user.id}>
+              <TableCell className="text-muted-foreground">{user.id}</TableCell>
               <TableCell className="w-8">
                 <Avatar>
                   <AvatarImage src={user.image ?? ""} alt={user.name ?? ""} />

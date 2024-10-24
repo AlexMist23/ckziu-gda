@@ -27,6 +27,7 @@ export default function TeachersTable({
     <Table className={className}>
       <TableHeader>
         <TableRow>
+          <TableHead>Id</TableHead>
           <TableHead>Name</TableHead>
           <TableHead>E-mail</TableHead>
           <TableHead>Subjects</TableHead>
@@ -37,6 +38,9 @@ export default function TeachersTable({
         {teachers && teachers.length > 0 ? (
           teachers.map((teacher) => (
             <TableRow key={teacher.id}>
+              <TableCell className="text-muted-foreground">
+                {teacher.id}
+              </TableCell>
               <TableCell>{teacher.name}</TableCell>
               <TableCell>{teacher.email}</TableCell>
               <TableCell className="">

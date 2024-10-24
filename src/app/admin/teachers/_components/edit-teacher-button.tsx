@@ -1,6 +1,6 @@
 "use client";
 
-import { Controller, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { toast } from "@/hooks/use-toast";
@@ -27,7 +27,7 @@ import { useRouter } from "next/navigation";
 import { Subject, TeacherWithSubjects } from "@/lib/kysely";
 import { Edit, Loader2 } from "lucide-react";
 import { useState } from "react";
-import { MultiSelect, Option } from "@/components/ui/multi-select";
+import MultiSelectSearch from "@/components/ui/multi-select-search";
 
 const formSchema = z.object({
   name: z.string().min(2, {
@@ -45,7 +45,7 @@ interface Params {
   subjects: Subject[];
 }
 
-export default function EditTeacherButton({ teacher, subjects }: Params) {
+export default function EditTeacherButton({ teacher }: Params) {
   const router = useRouter();
   const [isFetching, setIsFetching] = useState(false);
   const [open, setOpen] = useState(false);
@@ -87,11 +87,6 @@ export default function EditTeacherButton({ teacher, subjects }: Params) {
       setIsFetching(false);
     }
   }
-
-  const subjectOptions: Option[] = subjects.map((subject) => ({
-    label: subject.name,
-    value: subject.id,
-  }));
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -143,24 +138,32 @@ export default function EditTeacherButton({ teacher, subjects }: Params) {
                 </FormItem>
               )}
             />
-            <Controller
-              name="subjects_ids"
+            <FormField
               control={form.control}
+              name="subjects_ids"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Subjects</FormLabel>
+                  <FormLabel>Lectures</FormLabel>
                   <FormControl>
-                    <MultiSelect
-                      options={subjectOptions}
-                      selected={field.value}
-                      onChange={field.onChange}
-                      placeholder="Select subjects"
+                    <MultiSelectSearch
+                      placeholder="Select lectures"
+                      onSelect={field.onChange}
+                      apiEndpoint="/api/admin/subjects/search"
+                      buttonClassName="w-full"
+                      popoverWidth="w-full"
+                      initialItems={teacher.subjects.map((subject) => {
+                        return {
+                          value: subject.id,
+                          label: subject.name,
+                        };
+                      })}
                     />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
+
             <DialogFooter>
               <Button disabled={isFetching} type="submit">
                 Edit
