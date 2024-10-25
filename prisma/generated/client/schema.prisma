@@ -1,0 +1,170 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "./generated/client"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("POSTGRES_PRISMA_URL")
+  directUrl = env("POSTGRES_URL_NON_POOLING")
+}
+
+// Auth.js models
+
+model verification_token {
+  identifier String
+  expires    DateTime @db.Timestamptz(6)
+  token      String
+
+  @@id([identifier, token])
+}
+
+model accounts {
+  id                Int     @id @default(autoincrement())
+  userId            Int
+  type              String  @db.VarChar(255)
+  provider          String  @db.VarChar(255)
+  providerAccountId String  @db.VarChar(255)
+  refresh_token     String?
+  access_token      String?
+  expires_at        BigInt?
+  id_token          String?
+  scope             String?
+  session_state     String?
+  token_type        String?
+}
+
+model sessions {
+  id           Int      @id @default(autoincrement())
+  userId       Int
+  expires      DateTime @db.Timestamptz(6)
+  sessionToken String   @db.VarChar(255)
+}
+
+model users {
+  id            Int          @id @default(autoincrement())
+  name          String?      @db.VarChar(255)
+  email         String       @db.VarChar(255)
+  emailVerified DateTime?    @db.Timestamptz(6)
+  image         String?
+  presence      presence[]
+  user_roles    user_roles[]
+}
+
+// RBAC models
+
+model role {
+  id               Int                @id @default(autoincrement())
+  name             String             @unique
+  description      String?
+  user_roles       user_roles[]
+  role_permissions role_permissions[]
+  created_at       DateTime           @default(now())
+  updated_at       DateTime           @default(now()) @updatedAt
+}
+
+model user_roles {
+  user        users    @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  user_id     Int
+  role        role     @relation(fields: [role_id], references: [id], onDelete: Cascade)
+  role_id     Int
+  assigned_at DateTime @default(now())
+
+  @@id([user_id, role_id])
+}
+
+model permission {
+  id               Int                @id @default(autoincrement())
+  name             String             @unique
+  description      String?
+  role_permissions role_permissions[]
+  created_at       DateTime           @default(now())
+  updated_at       DateTime           @default(now()) @updatedAt
+}
+
+model role_permissions {
+  role          role       @relation(fields: [role_id], references: [id], onDelete: Cascade)
+  role_id       Int
+  permission    permission @relation(fields: [permission_id], references: [id], onDelete: Cascade)
+  permission_id Int
+  assigned_at   DateTime   @default(now())
+
+  @@id([role_id, permission_id])
+}
+
+// Database models:
+
+model database_metric {
+  id         Int      @id @default(autoincrement())
+  query_time Int
+  row_count  Int
+  timestamp  DateTime
+}
+
+// App models:
+
+model lecture {
+  id          Int        @id @default(autoincrement())
+  subject     subject    @relation(fields: [subject_id], references: [id])
+  subject_id  Int
+  teacher     teacher    @relation(fields: [teacher_id], references: [id])
+  teacher_id  Int
+  schedule    schedule   @relation(fields: [schedule_id], references: [id])
+  schedule_id Int
+  start_time  DateTime
+  end_time    DateTime
+  presence    presence[]
+  created_at  DateTime   @default(now())
+  updated_at  DateTime   @default(now()) @updatedAt
+}
+
+model presence {
+  id         Int      @id @default(autoincrement())
+  user       users    @relation(fields: [user_id], references: [id])
+  user_id    Int
+  lecture    lecture  @relation(fields: [lecture_id], references: [id])
+  lecture_id Int
+  is_present Boolean
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now()) @updatedAt
+
+  @@unique([user_id, lecture_id]) // Prevent duplicate presence records
+}
+
+model schedule {
+  id         Int       @id @default(autoincrement())
+  date       DateTime
+  lecture    lecture[]
+  created_at DateTime  @default(now())
+  updated_at DateTime  @default(now()) @updatedAt
+}
+
+model subject {
+  id               Int                @id @default(autoincrement())
+  name             String
+  teacher_subjects teacher_subjects[]
+  lecture          lecture[]
+  created_at       DateTime           @default(now())
+  updated_at       DateTime           @default(now()) @updatedAt
+}
+
+model teacher_subjects {
+  teacher     teacher  @relation(fields: [teacher_id], references: [id], onDelete: Cascade)
+  teacher_id  Int
+  subject     subject  @relation(fields: [subject_id], references: [id], onDelete: Cascade)
+  subject_id  Int
+  assigned_at DateTime @default(now())
+  is_primary  Boolean  @default(false)
+
+  @@id([teacher_id, subject_id])
+}
+
+model teacher {
+  id               Int                @id @default(autoincrement())
+  name             String
+  email            String?
+  teacher_subjects teacher_subjects[] // New: Many-to-many with subjects
+  lecture          lecture[]
+  created_at       DateTime           @default(now())
+  updated_at       DateTime           @default(now()) @updatedAt
+}

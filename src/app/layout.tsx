@@ -38,6 +38,7 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const session = await auth();
+  const isUserAdmin = session?.user?.roles.includes("ADMIN");
 
   return (
     <html lang="en" suppressHydrationWarning>
@@ -50,7 +51,7 @@ export default async function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          {session && session?.user.role ? (
+          {isUserAdmin ? (
             <LayoutForAdmin>{children}</LayoutForAdmin>
           ) : (
             <LayoutForUser>{children}</LayoutForUser>
