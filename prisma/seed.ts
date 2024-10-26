@@ -303,7 +303,7 @@ async function main() {
         data: {
           student_id: student.id,
           course_id: course.id,
-          score: faker.number.float({ min: 0, max: 100, precision: 0.1 }),
+          score: faker.number.int({ min: 0, max: 100 }),
           grade: faker.helpers.arrayElement(["A", "B", "C", "D", "F"]),
           term: faker.helpers.arrayElement([
             "Midterm",
