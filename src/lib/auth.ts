@@ -1,5 +1,5 @@
 // auth.ts
-import NextAuth from "next-auth";
+import NextAuth, { DefaultSession } from "next-auth";
 import PostgresAdapter from "@auth/pg-adapter";
 import GitHub from "next-auth/providers/github";
 import Google from "next-auth/providers/google";
@@ -89,11 +89,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth(async () => {
 });
 
 // Utility functions for checking permissions
-export function hasRole(session, role: string): boolean {
+export function hasRole(session: DefaultSession, role: string): boolean {
   return session?.user?.roles?.includes(role) ?? false;
 }
 
-export function hasPermission(session, permission: string): boolean {
+export function hasPermission(
+  session: DefaultSession,
+  permission: string
+): boolean {
   return session?.user?.permissions?.includes(permission) ?? false;
 }
 
