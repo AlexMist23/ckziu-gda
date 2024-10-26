@@ -122,6 +122,16 @@ exports.Prisma.TransactionIsolationLevel = makeStrictEnum({
   Serializable: 'Serializable'
 });
 
+exports.Prisma.UsersScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  email: 'email',
+  emailVerified: 'emailVerified',
+  image: 'image',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+};
+
 exports.Prisma.Verification_tokenScalarFieldEnum = {
   identifier: 'identifier',
   expires: 'expires',
@@ -148,14 +158,6 @@ exports.Prisma.SessionsScalarFieldEnum = {
   userId: 'userId',
   expires: 'expires',
   sessionToken: 'sessionToken'
-};
-
-exports.Prisma.UsersScalarFieldEnum = {
-  id: 'id',
-  name: 'name',
-  email: 'email',
-  emailVerified: 'emailVerified',
-  image: 'image'
 };
 
 exports.Prisma.RoleScalarFieldEnum = {
@@ -193,31 +195,54 @@ exports.Prisma.Database_metricScalarFieldEnum = {
   timestamp: 'timestamp'
 };
 
-exports.Prisma.LectureScalarFieldEnum = {
+exports.Prisma.Academic_yearScalarFieldEnum = {
   id: 'id',
-  subject_id: 'subject_id',
-  teacher_id: 'teacher_id',
-  schedule_id: 'schedule_id',
-  start_time: 'start_time',
-  end_time: 'end_time',
+  name: 'name',
+  start_date: 'start_date',
+  end_date: 'end_date',
+  type: 'type',
   created_at: 'created_at',
   updated_at: 'updated_at'
 };
 
-exports.Prisma.PresenceScalarFieldEnum = {
+exports.Prisma.CourseScalarFieldEnum = {
   id: 'id',
-  user_id: 'user_id',
+  subject_id: 'subject_id',
+  teacher_id: 'teacher_id',
+  grade_id: 'grade_id',
+  academic_year_id: 'academic_year_id',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+};
+
+exports.Prisma.LectureScalarFieldEnum = {
+  id: 'id',
+  schedule_id: 'schedule_id',
+  topic: 'topic',
+  created_at: 'created_at',
+  updated_at: 'updated_at',
+  subjectId: 'subjectId',
+  teacherId: 'teacherId'
+};
+
+exports.Prisma.AttendanceScalarFieldEnum = {
+  id: 'id',
+  student_id: 'student_id',
   lecture_id: 'lecture_id',
-  is_present: 'is_present',
+  status: 'status',
   created_at: 'created_at',
   updated_at: 'updated_at'
 };
 
 exports.Prisma.ScheduleScalarFieldEnum = {
   id: 'id',
+  course_id: 'course_id',
   date: 'date',
+  start_time: 'start_time',
+  end_time: 'end_time',
   created_at: 'created_at',
-  updated_at: 'updated_at'
+  updated_at: 'updated_at',
+  gradeId: 'gradeId'
 };
 
 exports.Prisma.SubjectScalarFieldEnum = {
@@ -242,6 +267,39 @@ exports.Prisma.TeacherScalarFieldEnum = {
   updated_at: 'updated_at'
 };
 
+exports.Prisma.GradeScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  description: 'description',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+};
+
+exports.Prisma.User_gradesScalarFieldEnum = {
+  user_id: 'user_id',
+  grade_id: 'grade_id',
+  joined_at: 'joined_at'
+};
+
+exports.Prisma.EnrollmentScalarFieldEnum = {
+  id: 'id',
+  student_id: 'student_id',
+  course_id: 'course_id',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+};
+
+exports.Prisma.Academic_performanceScalarFieldEnum = {
+  id: 'id',
+  student_id: 'student_id',
+  course_id: 'course_id',
+  score: 'score',
+  grade: 'grade',
+  term: 'term',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -259,21 +317,27 @@ exports.Prisma.NullsOrder = {
 
 
 exports.Prisma.ModelName = {
+  users: 'users',
   verification_token: 'verification_token',
   accounts: 'accounts',
   sessions: 'sessions',
-  users: 'users',
   role: 'role',
   user_roles: 'user_roles',
   permission: 'permission',
   role_permissions: 'role_permissions',
   database_metric: 'database_metric',
+  academic_year: 'academic_year',
+  course: 'course',
   lecture: 'lecture',
-  presence: 'presence',
+  attendance: 'attendance',
   schedule: 'schedule',
   subject: 'subject',
   teacher_subjects: 'teacher_subjects',
-  teacher: 'teacher'
+  teacher: 'teacher',
+  grade: 'grade',
+  user_grades: 'user_grades',
+  enrollment: 'enrollment',
+  academic_performance: 'academic_performance'
 };
 
 /**

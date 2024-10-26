@@ -11,6 +11,21 @@ datasource db {
 
 // Auth.js models
 
+model users {
+  id                   Int                    @id @default(autoincrement())
+  name                 String?                @db.VarChar(255)
+  email                String                 @db.VarChar(255)
+  emailVerified        DateTime?              @db.Timestamptz(6)
+  image                String?
+  attendances          attendance[]
+  user_roles           user_roles[]
+  enrollments          enrollment[]
+  user_grades          user_grades[]
+  created_at           DateTime               @default(now())
+  updated_at           DateTime               @default(now()) @updatedAt
+  academic_performance academic_performance[]
+}
+
 model verification_token {
   identifier String
   expires    DateTime @db.Timestamptz(6)
@@ -39,16 +54,6 @@ model sessions {
   userId       Int
   expires      DateTime @db.Timestamptz(6)
   sessionToken String   @db.VarChar(255)
-}
-
-model users {
-  id            Int          @id @default(autoincrement())
-  name          String?      @db.VarChar(255)
-  email         String       @db.VarChar(255)
-  emailVerified DateTime?    @db.Timestamptz(6)
-  image         String?
-  presence      presence[]
-  user_roles    user_roles[]
 }
 
 // RBAC models
@@ -103,47 +108,84 @@ model database_metric {
 
 // App models:
 
-model lecture {
-  id          Int        @id @default(autoincrement())
-  subject     subject    @relation(fields: [subject_id], references: [id])
-  subject_id  Int
-  teacher     teacher    @relation(fields: [teacher_id], references: [id])
-  teacher_id  Int
-  schedule    schedule   @relation(fields: [schedule_id], references: [id])
-  schedule_id Int
-  start_time  DateTime
-  end_time    DateTime
-  presence    presence[]
-  created_at  DateTime   @default(now())
-  updated_at  DateTime   @default(now()) @updatedAt
-}
-
-model presence {
+model academic_year {
   id         Int      @id @default(autoincrement())
-  user       users    @relation(fields: [user_id], references: [id])
-  user_id    Int
-  lecture    lecture  @relation(fields: [lecture_id], references: [id])
-  lecture_id Int
-  is_present Boolean
+  name       String
+  start_date DateTime
+  end_date   DateTime
+  type       String
+  courses    course[]
   created_at DateTime @default(now())
   updated_at DateTime @default(now()) @updatedAt
 
-  @@unique([user_id, lecture_id]) // Prevent duplicate presence records
+  @@unique([name, type])
+  @@unique([start_date, end_date, type])
+}
+
+model course {
+  id                   Int                    @id @default(autoincrement())
+  subject              subject                @relation(fields: [subject_id], references: [id])
+  subject_id           Int
+  teacher              teacher                @relation(fields: [teacher_id], references: [id])
+  teacher_id           Int
+  grade                grade                  @relation(fields: [grade_id], references: [id])
+  grade_id             Int
+  academic_year        academic_year          @relation(fields: [academic_year_id], references: [id])
+  academic_year_id     Int
+  schedules            schedule[]
+  enrollments          enrollment[]
+  created_at           DateTime               @default(now())
+  updated_at           DateTime               @default(now()) @updatedAt
+  academic_performance academic_performance[]
+}
+
+model lecture {
+  id          Int          @id @default(autoincrement())
+  schedule    schedule     @relation(fields: [schedule_id], references: [id])
+  schedule_id Int
+  topic       String?
+  attendances attendance[]
+  created_at  DateTime     @default(now())
+  updated_at  DateTime     @default(now()) @updatedAt
+  subject     subject?     @relation(fields: [subjectId], references: [id])
+  subjectId   Int?
+  teacher     teacher?     @relation(fields: [teacherId], references: [id])
+  teacherId   Int?
+}
+
+model attendance {
+  id         Int      @id @default(autoincrement())
+  student    users    @relation(fields: [student_id], references: [id])
+  student_id Int
+  lecture    lecture  @relation(fields: [lecture_id], references: [id])
+  lecture_id Int
+  status     String // e.g., "present", "absent", "late"
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now()) @updatedAt
+
+  @@unique([student_id, lecture_id])
 }
 
 model schedule {
   id         Int       @id @default(autoincrement())
+  course     course    @relation(fields: [course_id], references: [id])
+  course_id  Int
   date       DateTime
-  lecture    lecture[]
+  start_time DateTime
+  end_time   DateTime
+  lectures   lecture[]
   created_at DateTime  @default(now())
   updated_at DateTime  @default(now()) @updatedAt
+  grade      grade?    @relation(fields: [gradeId], references: [id])
+  gradeId    Int?
 }
 
 model subject {
   id               Int                @id @default(autoincrement())
   name             String
-  teacher_subjects teacher_subjects[]
+  teacher_subjects teacher_subjects[] // Keep this as is
   lecture          lecture[]
+  courses          course[]
   created_at       DateTime           @default(now())
   updated_at       DateTime           @default(now()) @updatedAt
 }
@@ -163,8 +205,57 @@ model teacher {
   id               Int                @id @default(autoincrement())
   name             String
   email            String?
-  teacher_subjects teacher_subjects[] // New: Many-to-many with subjects
+  teacher_subjects teacher_subjects[] // Keep this as is
   lecture          lecture[]
+  courses          course[]
   created_at       DateTime           @default(now())
   updated_at       DateTime           @default(now()) @updatedAt
+}
+
+model grade {
+  id          Int           @id @default(autoincrement())
+  name        String
+  description String?
+  schedules   schedule[]
+  user_grades user_grades[]
+  courses     course[]
+  created_at  DateTime      @default(now())
+  updated_at  DateTime      @default(now()) @updatedAt
+}
+
+model user_grades {
+  user      users    @relation(fields: [user_id], references: [id])
+  user_id   Int
+  grade     grade    @relation(fields: [grade_id], references: [id])
+  grade_id  Int
+  joined_at DateTime @default(now())
+
+  @@id([user_id, grade_id])
+}
+
+model enrollment {
+  id         Int      @id @default(autoincrement())
+  student    users    @relation(fields: [student_id], references: [id])
+  student_id Int
+  course     course   @relation(fields: [course_id], references: [id])
+  course_id  Int
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now()) @updatedAt
+
+  @@unique([student_id, course_id])
+}
+
+model academic_performance {
+  id         Int      @id @default(autoincrement())
+  student    users    @relation(fields: [student_id], references: [id])
+  student_id Int
+  course     course   @relation(fields: [course_id], references: [id])
+  course_id  Int
+  score      Float
+  grade      String // e.g., "A", "B", "C", etc.
+  term       String // e.g., "Midterm", "Final", "Q1", etc.
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now()) @updatedAt
+
+  @@unique([student_id, course_id, term])
 }
