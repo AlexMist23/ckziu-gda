@@ -116,7 +116,7 @@ CREATE TABLE "course" (
     "id" SERIAL NOT NULL,
     "subject_id" INTEGER NOT NULL,
     "teacher_id" INTEGER NOT NULL,
-    "grade_id" INTEGER NOT NULL,
+    "class_level_id" INTEGER NOT NULL,
     "academic_year_id" INTEGER NOT NULL,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -158,7 +158,7 @@ CREATE TABLE "schedule" (
     "end_time" TIMESTAMP(3) NOT NULL,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "gradeId" INTEGER,
+    "class_level_id" INTEGER,
 
     CONSTRAINT "schedule_pkey" PRIMARY KEY ("id")
 );
@@ -195,23 +195,23 @@ CREATE TABLE "teacher" (
 );
 
 -- CreateTable
-CREATE TABLE "grade" (
+CREATE TABLE "class_level" (
     "id" SERIAL NOT NULL,
     "name" TEXT NOT NULL,
     "description" TEXT,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-    CONSTRAINT "grade_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "class_level_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "user_grades" (
+CREATE TABLE "user_class_levels" (
     "user_id" INTEGER NOT NULL,
-    "grade_id" INTEGER NOT NULL,
+    "class_level_id" INTEGER NOT NULL,
     "joined_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-    CONSTRAINT "user_grades_pkey" PRIMARY KEY ("user_id","grade_id")
+    CONSTRAINT "user_class_levels_pkey" PRIMARY KEY ("user_id","class_level_id")
 );
 
 -- CreateTable
@@ -279,7 +279,7 @@ ALTER TABLE "course" ADD CONSTRAINT "course_subject_id_fkey" FOREIGN KEY ("subje
 ALTER TABLE "course" ADD CONSTRAINT "course_teacher_id_fkey" FOREIGN KEY ("teacher_id") REFERENCES "teacher"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "course" ADD CONSTRAINT "course_grade_id_fkey" FOREIGN KEY ("grade_id") REFERENCES "grade"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "course" ADD CONSTRAINT "course_class_level_id_fkey" FOREIGN KEY ("class_level_id") REFERENCES "class_level"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "course" ADD CONSTRAINT "course_academic_year_id_fkey" FOREIGN KEY ("academic_year_id") REFERENCES "academic_year"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -303,7 +303,7 @@ ALTER TABLE "attendance" ADD CONSTRAINT "attendance_lecture_id_fkey" FOREIGN KEY
 ALTER TABLE "schedule" ADD CONSTRAINT "schedule_course_id_fkey" FOREIGN KEY ("course_id") REFERENCES "course"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "schedule" ADD CONSTRAINT "schedule_gradeId_fkey" FOREIGN KEY ("gradeId") REFERENCES "grade"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "schedule" ADD CONSTRAINT "schedule_class_level_id_fkey" FOREIGN KEY ("class_level_id") REFERENCES "class_level"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "teacher_subjects" ADD CONSTRAINT "teacher_subjects_teacher_id_fkey" FOREIGN KEY ("teacher_id") REFERENCES "teacher"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -312,10 +312,10 @@ ALTER TABLE "teacher_subjects" ADD CONSTRAINT "teacher_subjects_teacher_id_fkey"
 ALTER TABLE "teacher_subjects" ADD CONSTRAINT "teacher_subjects_subject_id_fkey" FOREIGN KEY ("subject_id") REFERENCES "subject"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "user_grades" ADD CONSTRAINT "user_grades_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "user_class_levels" ADD CONSTRAINT "user_class_levels_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "user_grades" ADD CONSTRAINT "user_grades_grade_id_fkey" FOREIGN KEY ("grade_id") REFERENCES "grade"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "user_class_levels" ADD CONSTRAINT "user_class_levels_class_level_id_fkey" FOREIGN KEY ("class_level_id") REFERENCES "class_level"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "enrollment" ADD CONSTRAINT "enrollment_student_id_fkey" FOREIGN KEY ("student_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
