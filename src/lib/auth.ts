@@ -101,16 +101,12 @@ export function hasPermission(
 }
 
 // Middleware helper
-export function withAuth(roles?: string[], permissions?: string[]) {
+export function withAuth(permissions?: string[]) {
   return async () => {
     const session = await auth();
-
+    console.log(session);
     if (!session) {
       return new Response("Unauthorized", { status: 401 });
-    }
-
-    if (roles && !roles.some((role) => hasRole(session, role))) {
-      return new Response("Forbidden - Insufficient role", { status: 403 });
     }
 
     if (

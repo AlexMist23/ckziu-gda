@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import Header from "@/components/layouts/header/header";
-import { ThemeProvider } from "@/providers/theme-provider";
 import Footer from "@/components/layouts/footer";
 import { Toaster } from "@/components/ui/toaster";
 import { AdminSidebar } from "@/components/layouts/admin-sidebar/admin-sidebar";
@@ -13,7 +12,8 @@ import {
 } from "@/components/ui/sidebar";
 import { Separator } from "@/components/ui/separator";
 import { AdminSidebarBreadcrumbs } from "@/components/layouts/admin-sidebar/admin-sidebar-breadcrumbs";
-import { auth } from "@/lib/auth";
+import { auth, hasRole } from "@/lib/auth";
+import { Providers } from "@/providers/providers";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -37,26 +37,24 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  let isSuperAdmin;
   const session = await auth();
-  const isUserAdmin = session?.user?.roles.includes("ADMIN");
+  if (session) {
+    isSuperAdmin = hasRole(session, "SUPER_ADMIN");
+  }
 
   return (
     <html lang="en" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen`}
       >
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          {isUserAdmin ? (
+        <Providers>
+          {isSuperAdmin ? (
             <LayoutForAdmin>{children}</LayoutForAdmin>
           ) : (
             <LayoutForUser>{children}</LayoutForUser>
           )}
-        </ThemeProvider>
+        </Providers>
       </body>
     </html>
   );

@@ -11,7 +11,7 @@ export default function Header() {
     <>
       <header
         className={cn(
-          "w-full bg-background/80 backdrop-blur border-b shadow-sm"
+          "w-full bg-background/80 backdrop-blur border-b shadow-sm rounded-t-xl"
         )}
       >
         <div className="flex items-center h-16 gap-4 px-4 mx-auto text-sm max-w-[1900]">
