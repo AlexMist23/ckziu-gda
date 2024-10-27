@@ -12,4 +12,3 @@ This is a template for a Next.js application with shadcn UI, Vercel Postgres, an
 - Dark mode support with next-themes
 - Contact form with email sending functionality
 - User profile page
-aa
