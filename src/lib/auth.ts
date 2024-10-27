@@ -1,5 +1,6 @@
 // auth.ts
 import NextAuth, { DefaultSession } from "next-auth";
+import { NextRequest, NextResponse } from "next/server";
 import PostgresAdapter from "@auth/pg-adapter";
 import GitHub from "next-auth/providers/github";
 import Google from "next-auth/providers/google";
@@ -101,23 +102,44 @@ export function hasPermission(
 }
 
 // Middleware helper
-export function withAuth(permissions?: string[]) {
-  return async () => {
-    const session = await auth();
-    console.log(session);
-    if (!session) {
-      return new Response("Unauthorized", { status: 401 });
-    }
 
-    if (
-      permissions &&
-      !permissions.some((permission) => hasPermission(session, permission))
-    ) {
-      return new Response("Forbidden - Insufficient permissions", {
-        status: 403,
-      });
-    }
+export async function withAuth(req: NextRequest, permissions?: string[]) {
+  const session = await auth();
 
-    return null;
-  };
+  if (!session) {
+    return {
+      authorized: false,
+      response: NextResponse.json({ error: "Unauthorized" }, { status: 401 }),
+    };
+  }
+  if (permissions && permissions.length > 0) {
+    const hasRequiredPermission = permissions.some((permission) =>
+      session.user?.permissions?.includes(permission)
+    );
+
+    if (!hasRequiredPermission) {
+      return {
+        authorized: false,
+        response: NextResponse.json(
+          { error: "Insufficient permissions" },
+          { status: 403 }
+        ),
+      };
+    }
+  }
+
+  return { authorized: true, session, req };
+}
+
+export async function withAuthPage(permissions?: string[]): Promise<boolean> {
+  const session = await auth();
+  if (!session) {
+    return false;
+  }
+
+  if (permissions && permissions.length > 0) {
+    return permissions.some((permission) => hasPermission(session, permission));
+  }
+
+  return true;
 }
