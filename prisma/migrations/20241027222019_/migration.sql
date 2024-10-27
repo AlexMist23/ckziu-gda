@@ -240,6 +240,9 @@ CREATE TABLE "academic_performance" (
 );
 
 -- CreateIndex
+CREATE UNIQUE INDEX "users_email_key" ON "users"("email");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "role_name_key" ON "role"("name");
 
 -- CreateIndex
