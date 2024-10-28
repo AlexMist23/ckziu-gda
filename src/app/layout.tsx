@@ -37,11 +37,8 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  let isSuperAdmin;
   const session = await auth();
-  if (session) {
-    isSuperAdmin = hasRole(session, "SUPER_ADMIN");
-  }
+  const isSuperAdmin = hasRole(session, "SUPER_ADMIN");
 
   return (
     <html lang="en" suppressHydrationWarning>

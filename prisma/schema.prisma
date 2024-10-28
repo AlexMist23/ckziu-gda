@@ -9,50 +9,60 @@ datasource db {
 }
 
 // Auth.js models 
-// can be changed (but don't change name)
-model users {
-    id            Int          @id @default(autoincrement())
-    name          String?      @db.VarChar(255)
-    email         String       @unique @db.VarChar(255)
-    emailVerified DateTime?    @db.Timestamptz(6)
+model User {
+    id            String    @id @default(cuid())
+    name          String?
+    email         String    @unique
+    emailVerified DateTime?
     image         String?
-    createdAt     DateTime     @default(now())
-    updatedAt     DateTime     @default(now()) @updatedAt
-    userRoles     UserRole[]
-    Attendance    Attendance[]
+    accounts      Account[]
+    sessions      Session[]
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @default(now()) @updatedAt
+
+    // non auth fields:
+    userRoles  UserRole[]
+    Attendance Attendance[]
 }
 
-// don't change (auth system)
-model verification_token {
-    identifier String
-    expires    DateTime @db.Timestamptz(6)
-    token      String
-
-    @@id([identifier, token])
-}
-
-// don't change (auth system)
-model accounts {
-    id                Int     @id @default(autoincrement())
-    userId            Int
-    type              String  @db.VarChar(255)
-    provider          String  @db.VarChar(255)
-    providerAccountId String  @db.VarChar(255)
+model Account {
+    userId            String
+    type              String
+    provider          String
+    providerAccountId String
     refresh_token     String?
     access_token      String?
-    expires_at        BigInt?
+    expires_at        Int?
     id_token          String?
     scope             String?
     session_state     String?
     token_type        String?
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @default(now()) @updatedAt
+
+    user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    @@id([provider, providerAccountId])
 }
 
-// don't change (auth system)
-model sessions {
-    id           Int      @id @default(autoincrement())
-    userId       Int
-    expires      DateTime @db.Timestamptz(6)
-    sessionToken String   @db.VarChar(255)
+model Session {
+    sessionToken String   @unique
+    userId       String
+    expires      DateTime
+    user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}
+
+model VerificationToken {
+    identifier String
+    token      String
+    expires    DateTime
+
+    @@id([identifier, token])
 }
 
 // RBAC models
@@ -67,8 +77,8 @@ model Role {
 }
 
 model UserRole {
-    user       users    @relation(fields: [userId], references: [id], onDelete: Cascade)
-    userId     Int
+    user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+    userId     String
     role       Role     @relation(fields: [roleId], references: [id], onDelete: Cascade)
     roleId     Int
     assignedAt DateTime @default(now())
@@ -142,8 +152,8 @@ model Schedule {
 
 model Attendance {
     id        Int      @id @default(autoincrement())
-    user      users    @relation(fields: [userID], references: [id])
-    userID    Int
+    user      User     @relation(fields: [userID], references: [id])
+    userID    String
     lesson    Lesson   @relation(fields: [lessonId], references: [id])
     lessonId  Int
     present   Boolean  @default(false)

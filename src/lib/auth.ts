@@ -1,21 +1,15 @@
-// auth.ts
 import NextAuth, { DefaultSession } from "next-auth";
 import { NextRequest, NextResponse } from "next/server";
-import PostgresAdapter from "@auth/pg-adapter";
 import GitHub from "next-auth/providers/github";
 import Google from "next-auth/providers/google";
-import { Pool } from "@neondatabase/serverless";
-import { sql } from "@vercel/postgres";
+import { PrismaAdapter } from "@auth/prisma-adapter";
+import { PrismaClient } from "@prisma/client";
+
+const prisma = new PrismaClient();
 
 export const { handlers, auth, signIn, signOut } = NextAuth(async () => {
-  const pool = new Pool({
-    connectionString: process.env.POSTGRES_URL,
-  }) as unknown as import("pg").Pool;
-
-  await pool.query(`SET search_path TO ${process.env.SCHEMA}`);
-
   return {
-    adapter: PostgresAdapter(pool),
+    adapter: PrismaAdapter(prisma),
     providers: [
       GitHub({
         clientId: process.env.GITHUB_ID,
@@ -35,26 +29,40 @@ export const { handlers, auth, signIn, signOut } = NextAuth(async () => {
         if (user?.id) {
           token.id = user.id;
           try {
-            const rolesResult = await sql`
-              SELECT r.name as role_name, p.name as permission_name
-              FROM users u
-              JOIN user_roles ur ON u.id = ur.user_id
-              JOIN role r ON ur.role_id = r.id
-              LEFT JOIN role_permissions rp ON r.id = rp.role_id
-              LEFT JOIN permission p ON rp.permission_id = p.id
-              WHERE u.id = ${user.id}
-            `;
+            const userWithRoles = await prisma.user.findUnique({
+              where: { id: user.id },
+              include: {
+                userRoles: {
+                  include: {
+                    role: {
+                      include: {
+                        rolePermissions: {
+                          include: {
+                            permission: true,
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            });
 
-            token.roles = [
-              ...new Set(rolesResult.rows.map((row) => row.role_name)),
-            ];
-            token.permissions = [
-              ...new Set(
-                rolesResult.rows
-                  .filter((row) => row.permission_name)
-                  .map((row) => row.permission_name)
-              ),
-            ];
+            if (userWithRoles) {
+              token.roles = [
+                ...new Set(userWithRoles.userRoles.map((ur) => ur.role.name)),
+              ];
+              token.permissions = [
+                ...new Set(
+                  userWithRoles.userRoles.flatMap((ur) =>
+                    ur.role.rolePermissions.map((rp) => rp.permission.name)
+                  )
+                ),
+              ];
+            } else {
+              token.roles = [];
+              token.permissions = [];
+            }
           } catch (error) {
             console.error("Error fetching user roles:", error);
             token.roles = [];
@@ -90,19 +98,20 @@ export const { handlers, auth, signIn, signOut } = NextAuth(async () => {
 });
 
 // Utility functions for checking permissions
-export function hasRole(session: DefaultSession, role: string): boolean {
+export function hasRole(session: DefaultSession | null, role: string): boolean {
+  if (!session) return false;
   return session?.user?.roles?.includes(role) ?? false;
 }
 
 export function hasPermission(
-  session: DefaultSession,
+  session: DefaultSession | null,
   permission: string
 ): boolean {
+  if (!session) return false;
   return session?.user?.permissions?.includes(permission) ?? false;
 }
 
 // Middleware helper
-
 export async function withAuth(req: NextRequest, permissions?: string[]) {
   const session = await auth();
 

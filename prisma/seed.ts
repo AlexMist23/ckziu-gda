@@ -27,7 +27,10 @@ const models = [
 ];
 
 async function main() {
+  console.log("Starting database seed...");
+
   // Clean the database
+  console.log("Cleaning existing data...");
   await prisma.$transaction([
     prisma.attendance.deleteMany(),
     prisma.lesson.deleteMany(),
@@ -38,10 +41,14 @@ async function main() {
     prisma.userRole.deleteMany(),
     prisma.permission.deleteMany(),
     prisma.role.deleteMany(),
-    prisma.users.deleteMany(),
+    prisma.user.deleteMany(),
+    prisma.account.deleteMany(),
+    prisma.session.deleteMany(),
+    prisma.verificationToken.deleteMany(),
   ]);
 
   // Create all permissions
+  console.log("Creating permissions...");
   const permissionsData = models.flatMap((model) =>
     createModelPermissions(model).map((permissionName) => ({
       name: permissionName,
@@ -54,6 +61,7 @@ async function main() {
   });
 
   // Create roles
+  console.log("Creating roles...");
   const superAdminRole = await prisma.role.create({
     data: {
       name: "SUPER_ADMIN",
@@ -79,6 +87,7 @@ async function main() {
   const allPermissions = await prisma.permission.findMany();
 
   // Assign all permissions to SUPER_ADMIN
+  console.log("Assigning permissions to SUPER_ADMIN...");
   await Promise.all(
     allPermissions.map((permission) =>
       prisma.rolePermission.create({
@@ -91,6 +100,7 @@ async function main() {
   );
 
   // Assign non-auth permissions to ADMIN
+  console.log("Assigning permissions to ADMIN...");
   const nonAuthPermissions = allPermissions.filter(
     (permission) =>
       !["User", "Role", "Permission", "UserRole", "RolePermission"].some(
@@ -110,6 +120,7 @@ async function main() {
   );
 
   // Create Teachers
+  console.log("Creating teachers...");
   const teachers = await Promise.all(
     Array.from({ length: 10 }, async () => {
       const firstName = faker.person.firstName();
@@ -129,6 +140,7 @@ async function main() {
   );
 
   // Create Subjects
+  console.log("Creating subjects...");
   const subjectNames = [
     "Mathematics",
     "Physics",
@@ -151,6 +163,7 @@ async function main() {
   );
 
   // Create schedules for the next 2 weeks
+  console.log("Creating schedules...");
   const schedules = await Promise.all(
     Array.from({ length: 10 }, (_, i) => {
       const date = new Date();
@@ -162,6 +175,7 @@ async function main() {
   );
 
   // Create lessons
+  console.log("Creating lessons...");
   const rooms = Array.from({ length: 10 }, (_, i) => `Room ${101 + i}`);
 
   await Promise.all(
@@ -190,12 +204,13 @@ async function main() {
   );
 
   // Create regular users with USER role
+  console.log("Creating users...");
   const users = await Promise.all(
     Array.from({ length: 20 }, async () => {
       const firstName = faker.person.firstName();
       const lastName = faker.person.lastName();
 
-      return prisma.users.create({
+      return prisma.user.create({
         data: {
           name: `${firstName} ${lastName}`,
           email: faker.internet.email({ firstName, lastName }),
@@ -210,6 +225,7 @@ async function main() {
   );
 
   // Create random attendance records
+  console.log("Creating attendance records...");
   const lessons = await prisma.lesson.findMany();
 
   await Promise.all(
@@ -233,7 +249,7 @@ async function main() {
 
 main()
   .catch((e) => {
-    console.error(e);
+    console.error("Error during seeding:", e);
     process.exit(1);
   })
   .finally(async () => {

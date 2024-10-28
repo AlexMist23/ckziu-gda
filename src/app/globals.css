@@ -4,7 +4,12 @@
 
 html,
 body {
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: 'Gesit';
+}
+
+code,
+pre {
+  font-family: 'Geist Mono';
 }
 
 @layer utilities {
