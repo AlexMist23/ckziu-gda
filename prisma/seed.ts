@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { PrismaClient } from "@prisma/client";
 import { faker } from "@faker-js/faker";
 
@@ -58,6 +59,20 @@ async function main() {
 
   await prisma.permission.createMany({
     data: permissionsData,
+  });
+
+  await prisma.permission.create({
+    data: {
+      name: "view:admin_panel",
+      description: "Permission to view all admin routes",
+    },
+  });
+
+  await prisma.permission.create({
+    data: {
+      name: "routes:admin",
+      description: "Permission to view all admin routes",
+    },
   });
 
   // Create roles
