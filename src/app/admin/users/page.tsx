@@ -14,7 +14,7 @@ export const metadata = {
 export default async function UsersPage({
   searchParams,
 }: {
-  searchParams: SearchParams;
+  searchParams: Promise<SearchParams>;
 }) {
   const queryClient = getQueryClient();
 
