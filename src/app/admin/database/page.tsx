@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { useClipboard } from "use-clipboard-copy";
-import { getHelperClient } from "@/lib/fetch-helper-client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Accordion,
@@ -85,9 +84,8 @@ export default function DatabaseSchemaPage() {
   useEffect(() => {
     const fetchSchema = async () => {
       try {
-        const data = await getHelperClient<TableSchema[]>(
-          "/api/admin/database-schema"
-        );
+        const req = await fetch("/api/admin/database-schema");
+        const data = await req.json();
         setSchema(data);
         setSqlQuery(generateSQLQuery(data));
       } catch (error) {
