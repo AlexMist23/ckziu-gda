@@ -8,23 +8,21 @@ datasource db {
     directUrl = env("POSTGRES_URL_NON_POOLING")
 }
 
-// Auth.js models
-
+// Auth.js models 
+// can be changed (but don't change name)
 model users {
-    id                   Int                    @id @default(autoincrement())
-    name                 String?                @db.VarChar(255)
-    email                String                 @unique @db.VarChar(255)
-    emailVerified        DateTime?              @db.Timestamptz(6)
-    image                String?
-    attendances          attendance[]
-    user_roles           user_roles[]
-    enrollments          enrollment[]
-    user_class_levels    user_class_levels[]
-    created_at           DateTime               @default(now())
-    updated_at           DateTime               @default(now()) @updatedAt
-    academic_performance academic_performance[]
+    id            Int          @id @default(autoincrement())
+    name          String?      @db.VarChar(255)
+    email         String       @unique @db.VarChar(255)
+    emailVerified DateTime?    @db.Timestamptz(6)
+    image         String?
+    createdAt     DateTime     @default(now())
+    updatedAt     DateTime     @default(now()) @updatedAt
+    userRoles     UserRole[]
+    Attendance    Attendance[]
 }
 
+// don't change (auth system)
 model verification_token {
     identifier String
     expires    DateTime @db.Timestamptz(6)
@@ -33,6 +31,7 @@ model verification_token {
     @@id([identifier, token])
 }
 
+// don't change (auth system)
 model accounts {
     id                Int     @id @default(autoincrement())
     userId            Int
@@ -48,6 +47,7 @@ model accounts {
     token_type        String?
 }
 
+// don't change (auth system)
 model sessions {
     id           Int      @id @default(autoincrement())
     userId       Int
@@ -56,205 +56,98 @@ model sessions {
 }
 
 // RBAC models
-
-model role {
-    id               Int                @id @default(autoincrement())
-    name             String             @unique
-    description      String?
-    user_roles       user_roles[]
-    role_permissions role_permissions[]
-    created_at       DateTime           @default(now())
-    updated_at       DateTime           @default(now()) @updatedAt
+model Role {
+    id              Int              @id @default(autoincrement())
+    name            String           @unique
+    description     String?
+    userRoles       UserRole[]
+    rolePermissions RolePermission[]
+    createdAt       DateTime         @default(now())
+    updatedAt       DateTime         @default(now()) @updatedAt
 }
 
-model user_roles {
-    user        users    @relation(fields: [user_id], references: [id], onDelete: Cascade)
-    user_id     Int
-    role        role     @relation(fields: [role_id], references: [id], onDelete: Cascade)
-    role_id     Int
-    assigned_at DateTime @default(now())
+model UserRole {
+    user       users    @relation(fields: [userId], references: [id], onDelete: Cascade)
+    userId     Int
+    role       Role     @relation(fields: [roleId], references: [id], onDelete: Cascade)
+    roleId     Int
+    assignedAt DateTime @default(now())
 
-    @@id([user_id, role_id])
+    @@id([userId, roleId])
 }
 
-model permission {
-    id               Int                @id @default(autoincrement())
-    name             String             @unique
-    description      String?
-    role_permissions role_permissions[]
-    created_at       DateTime           @default(now())
-    updated_at       DateTime           @default(now()) @updatedAt
+model Permission {
+    id              Int              @id @default(autoincrement())
+    name            String           @unique
+    description     String?
+    rolePermissions RolePermission[]
+    createdAt       DateTime         @default(now())
+    updatedAt       DateTime         @default(now()) @updatedAt
 }
 
-model role_permissions {
-    role          role       @relation(fields: [role_id], references: [id], onDelete: Cascade)
-    role_id       Int
-    permission    permission @relation(fields: [permission_id], references: [id], onDelete: Cascade)
-    permission_id Int
-    assigned_at   DateTime   @default(now())
+model RolePermission {
+    role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+    roleId       Int
+    permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+    permissionId Int
+    assignedAt   DateTime   @default(now())
 
-    @@id([role_id, permission_id])
+    @@id([roleId, permissionId])
 }
 
-// Database models:
-
-model database_metric {
-    id         Int      @id @default(autoincrement())
-    query_time Int
-    row_count  Int
-    timestamp  DateTime
+// Database models
+model DatabaseMetric {
+    id        Int      @id @default(autoincrement())
+    queryTime Int
+    rowCount  Int
+    timestamp DateTime
 }
 
-// App models:
-
-model academic_year {
-    id         Int      @id @default(autoincrement())
-    name       String
-    start_date DateTime
-    end_date   DateTime
-    type       String
-    courses    course[]
-    created_at DateTime @default(now())
-    updated_at DateTime @default(now()) @updatedAt
-
-    @@unique([name, type])
-    @@unique([start_date, end_date, type])
+// App models
+model Teacher {
+    id          Int       @id @default(autoincrement())
+    first_name  String
+    second_name String
+    email       String    @unique
+    subjects    Subject[]
+    lessons     Lesson[]
 }
 
-model course {
-    id                   Int                    @id @default(autoincrement())
-    subject              subject                @relation(fields: [subject_id], references: [id])
-    subject_id           Int
-    teacher              teacher                @relation(fields: [teacher_id], references: [id])
-    teacher_id           Int
-    class_level          class_level            @relation(fields: [class_level_id], references: [id])
-    class_level_id       Int
-    academic_year        academic_year          @relation(fields: [academic_year_id], references: [id])
-    academic_year_id     Int
-    schedules            schedule[]
-    enrollments          enrollment[]
-    created_at           DateTime               @default(now())
-    updated_at           DateTime               @default(now()) @updatedAt
-    academic_performance academic_performance[]
+model Subject {
+    id       Int       @id @default(autoincrement())
+    name     String    @unique
+    teachers Teacher[]
+    lessons  Lesson[]
 }
 
-model lecture {
+model Lesson {
     id          Int          @id @default(autoincrement())
-    schedule    schedule     @relation(fields: [schedule_id], references: [id])
-    schedule_id Int
-    topic       String?
-    attendances attendance[]
-    created_at  DateTime     @default(now())
-    updated_at  DateTime     @default(now()) @updatedAt
-    subject     subject?     @relation(fields: [subjectId], references: [id])
-    subjectId   Int?
-    teacher     teacher?     @relation(fields: [teacherId], references: [id])
-    teacherId   Int?
+    start_time  DateTime
+    end_time    DateTime
+    subject     Subject      @relation(fields: [subjectId], references: [id])
+    subjectId   Int
+    teacher     Teacher      @relation(fields: [teacherId], references: [id])
+    teacherId   Int
+    schedule    Schedule     @relation(fields: [scheduleId], references: [id])
+    scheduleId  Int
+    room        String?
+    attendances Attendance[]
 }
 
-model attendance {
-    id         Int      @id @default(autoincrement())
-    student    users    @relation(fields: [student_id], references: [id])
-    student_id Int
-    lecture    lecture  @relation(fields: [lecture_id], references: [id])
-    lecture_id Int
-    status     String // e.g., "present", "absent", "late"
-    created_at DateTime @default(now())
-    updated_at DateTime @default(now()) @updatedAt
-
-    @@unique([student_id, lecture_id])
+model Schedule {
+    id      Int      @id @default(autoincrement())
+    date    DateTime @unique
+    lessons Lesson[]
 }
 
-model schedule {
-    id             Int          @id @default(autoincrement())
-    course         course       @relation(fields: [course_id], references: [id])
-    course_id      Int
-    date           DateTime
-    start_time     DateTime
-    end_time       DateTime
-    lectures       lecture[]
-    created_at     DateTime     @default(now())
-    updated_at     DateTime     @default(now()) @updatedAt
-    class_level    class_level? @relation(fields: [class_level_id], references: [id])
-    class_level_id Int?
-}
+model Attendance {
+    id        Int      @id @default(autoincrement())
+    user      users    @relation(fields: [userID], references: [id])
+    userID    Int
+    lesson    Lesson   @relation(fields: [lessonId], references: [id])
+    lessonId  Int
+    present   Boolean  @default(false)
+    timestamp DateTime @default(now())
 
-model subject {
-    id               Int                @id @default(autoincrement())
-    name             String
-    teacher_subjects teacher_subjects[] // Keep this as is
-    lecture          lecture[]
-    courses          course[]
-    created_at       DateTime           @default(now())
-    updated_at       DateTime           @default(now()) @updatedAt
-}
-
-model teacher_subjects {
-    teacher     teacher  @relation(fields: [teacher_id], references: [id], onDelete: Cascade)
-    teacher_id  Int
-    subject     subject  @relation(fields: [subject_id], references: [id], onDelete: Cascade)
-    subject_id  Int
-    assigned_at DateTime @default(now())
-    is_primary  Boolean  @default(false)
-
-    @@id([teacher_id, subject_id])
-}
-
-model teacher {
-    id               Int                @id @default(autoincrement())
-    name             String
-    email            String?
-    teacher_subjects teacher_subjects[] // Keep this as is
-    lecture          lecture[]
-    courses          course[]
-    created_at       DateTime           @default(now())
-    updated_at       DateTime           @default(now()) @updatedAt
-}
-
-model class_level {
-    id          Int                 @id @default(autoincrement())
-    name        String
-    description String?
-    schedules   schedule[]
-    user_levels user_class_levels[]
-    courses     course[]
-    created_at  DateTime            @default(now())
-    updated_at  DateTime            @default(now()) @updatedAt
-}
-
-model user_class_levels {
-    user           users       @relation(fields: [user_id], references: [id])
-    user_id        Int
-    class_level    class_level @relation(fields: [class_level_id], references: [id])
-    class_level_id Int
-    joined_at      DateTime    @default(now())
-
-    @@id([user_id, class_level_id])
-}
-
-model enrollment {
-    id         Int      @id @default(autoincrement())
-    student    users    @relation(fields: [student_id], references: [id])
-    student_id Int
-    course     course   @relation(fields: [course_id], references: [id])
-    course_id  Int
-    created_at DateTime @default(now())
-    updated_at DateTime @default(now()) @updatedAt
-
-    @@unique([student_id, course_id])
-}
-
-model academic_performance {
-    id         Int      @id @default(autoincrement())
-    student    users    @relation(fields: [student_id], references: [id])
-    student_id Int
-    course     course   @relation(fields: [course_id], references: [id])
-    course_id  Int
-    score      Float
-    grade      String // e.g., "A", "B", "C", etc.
-    term       String // e.g., "Midterm", "Final", "Q1", etc.
-    created_at DateTime @default(now())
-    updated_at DateTime @default(now()) @updatedAt
-
-    @@unique([student_id, course_id, term])
+    @@unique([userID, lessonId])
 }
