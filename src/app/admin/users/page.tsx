@@ -4,6 +4,7 @@ import { UsersTable } from "./_components/table/table";
 import { DataTableSkeleton } from "@/components/data-table/data-table-skeleton";
 import { fetchUsers } from "@/lib/api/users";
 import { getQueryClient } from "@/lib/query-client";
+import { SearchParams } from "next/dist/server/request/search-params";
 
 export const metadata = {
   title: "User Management",
@@ -13,7 +14,7 @@ export const metadata = {
 export default async function UsersPage({
   searchParams,
 }: {
-  searchParams: { [key: string]: string | string[] | undefined };
+  searchParams: SearchParams;
 }) {
   const queryClient = getQueryClient();
 
