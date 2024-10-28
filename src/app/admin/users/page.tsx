@@ -1,27 +1,37 @@
 import { Suspense } from "react";
-import { UserTable } from "./_components/user-table/table";
-import { TableSkeleton } from "@/components/ui/table-skeleton";
-import { withAuthPage } from "@/lib/auth";
-import { redirect } from "next/navigation";
+import { HydrationBoundary, dehydrate } from "@tanstack/react-query";
+import { UsersTable } from "./_components/table/table";
+import { DataTableSkeleton } from "@/components/data-table/data-table-skeleton";
+import { fetchUsers } from "@/lib/api/users";
+import { getQueryClient } from "@/lib/query-client";
 
 export const metadata = {
   title: "User Management",
-  description: "Manage users in the education management system",
+  description: "Manage users in the admin panel",
 };
 
-export default async function UsersPage() {
-  const hasAccess = await withAuthPage(["read:user"]);
+export default async function UsersPage({
+  searchParams,
+}: {
+  searchParams: { [key: string]: string | string[] | undefined };
+}) {
+  const queryClient = getQueryClient();
 
-  if (!hasAccess) {
-    redirect("/unauthorized");
-  }
+  const params = await searchParams;
+  await queryClient.prefetchQuery({
+    queryKey: ["users", params],
+    queryFn: () => fetchUsers(params),
+  });
 
   return (
     <div className="container mx-auto py-10">
-      <h1 className="text-2xl font-bold mb-5">User Management</h1>
-      <Suspense fallback={<TableSkeleton />}>
-        <UserTable />
-      </Suspense>
+      <HydrationBoundary state={dehydrate(queryClient)}>
+        <Suspense
+          fallback={<DataTableSkeleton columnCount={5} rowCount={10} />}
+        >
+          <UsersTable />
+        </Suspense>
+      </HydrationBoundary>
     </div>
   );
 }

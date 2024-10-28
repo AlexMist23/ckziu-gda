@@ -25,8 +25,8 @@ export function AdminSidebarBreadcrumbs() {
           </BreadcrumbLink>
         </BreadcrumbItem>
         {pathSegments.map((segment, index) => {
-          const href = `/admin/${pathSegments.slice(0, index + 1).join("/")}`;
-          const isLast = index === pathSegments.length - 1;
+          const href = `/admin/${pathSegments.slice(0, index).join("/")}`;
+          const isLast = index === pathSegments.length;
 
           return (
             <Fragment key={href}>

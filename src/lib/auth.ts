@@ -112,7 +112,7 @@ export function hasPermission(
 }
 
 // Middleware helper
-export async function withAuth(req: NextRequest, permissions?: string[]) {
+export async function withAuthApi(req: NextRequest, permissions: string[]) {
   const session = await auth();
 
   if (!session) {
@@ -140,7 +140,7 @@ export async function withAuth(req: NextRequest, permissions?: string[]) {
   return { authorized: true, session, req };
 }
 
-export async function withAuthPage(permissions?: string[]): Promise<boolean> {
+export async function withAuth(permissions?: string[]): Promise<boolean> {
   const session = await auth();
   if (!session) {
     return false;

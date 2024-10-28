@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/sidebar";
 import { Separator } from "@/components/ui/separator";
 import { AdminSidebarBreadcrumbs } from "@/components/layouts/admin-sidebar/admin-sidebar-breadcrumbs";
-import { auth, hasRole } from "@/lib/auth";
+import { withAuth } from "@/lib/auth";
 import { Providers } from "@/providers/providers";
 
 const geistSans = localFont({
@@ -37,8 +37,7 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const session = await auth();
-  const isSuperAdmin = hasRole(session, "SUPER_ADMIN");
+  const canViewSidebar = await withAuth(["view:admin_panel"]);
 
   return (
     <html lang="en" suppressHydrationWarning>
@@ -46,7 +45,7 @@ export default async function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen`}
       >
         <Providers>
-          {isSuperAdmin ? (
+          {canViewSidebar ? (
             <LayoutForAdmin>{children}</LayoutForAdmin>
           ) : (
             <LayoutForUser>{children}</LayoutForUser>
