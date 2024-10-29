@@ -1,8 +1,8 @@
 import { User } from "@prisma/client";
 
 interface FetchUsersParams {
-  page?: string | string[];
-  pageSize?: string | string[];
+  page?: number | string | string[];
+  pageSize?: number | string | string[];
   sortBy?: string | string[];
   sortOrder?: string | string[];
   name?: string | string[];
@@ -28,8 +28,8 @@ export async function fetchUsers(
     }
   };
 
-  addParam("page", params.page);
-  addParam("pageSize", params.pageSize);
+  addParam("page", `${params.page}`);
+  addParam("pageSize", `${params.pageSize}`);
   addParam("sortBy", params.sortBy);
   addParam("sortOrder", params.sortOrder);
   addParam("name", params.name);

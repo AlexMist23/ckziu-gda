@@ -16,7 +16,7 @@ export function UsersTable() {
     [searchParams]
   );
 
-  const page = Number(getSearchParam("page")) || 1;
+  const page = Number(getSearchParam("page"));
   const pageSize = Number(getSearchParam("pageSize")) || 10;
   const sortBy = getSearchParam("sortBy") as string | undefined;
   const sortOrder = getSearchParam("sortOrder") as "asc" | "desc" | undefined;
@@ -27,8 +27,9 @@ export function UsersTable() {
   };
 
   const { data, isLoading, isError } = useQuery({
-    queryKey: ["users", { page, pageSize, sortBy, sortOrder, filters }],
-    queryFn: () => fetchUsers({ page, pageSize, sortBy, sortOrder, filters }),
+    queryKey: ["users", { ...searchParams }],
+    queryFn: () =>
+      fetchUsers({ page, pageSize, sortBy, sortOrder, ...filters }),
   });
 
   const handlePageChange = useCallback(
